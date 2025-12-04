@@ -18,3 +18,7 @@ Pillow>=10.0,<11.0
 
 # Variables d'environnement
 python-dotenv>=1.0,<2.0
+
+#documentationtion avec redox 
+
+drf-spectacular

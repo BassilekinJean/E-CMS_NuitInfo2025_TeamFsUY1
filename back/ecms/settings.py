@@ -9,6 +9,9 @@ import os
 from pathlib import Path
 from datetime import timedelta
 from dotenv import load_dotenv
+from decouple import config
+
+
 
 # Charger les variables d'environnement depuis .env
 load_dotenv()
@@ -41,6 +44,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'corsheaders',
+    'drf_spectacular',
     
     # E-CMS Apps
     'apps.users',
@@ -85,17 +89,25 @@ WSGI_APPLICATION = 'ecms.wsgi.application'
 # Database - PostgreSQL Configuration
 # https://docs.djangoproject.com/en/4.x/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': os.environ.get('DB_NAME', 'ecms_db'),
+#         'USER': os.environ.get('DB_USER', 'postgres'),
+#         'PASSWORD': os.environ.get('DB_PASSWORD', ''),
+#         'HOST': os.environ.get('DB_HOST', 'localhost'),
+#         'PORT': os.environ.get('DB_PORT', '5432'),
+#     }
+# }
+
+
+# ACTIVER LA CONFIGURATION SQLite POUR LE DÉVELOPPEMENT LOCAL
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('DB_NAME', 'ecms_db'),
-        'USER': os.environ.get('DB_USER', 'postgres'),
-        'PASSWORD': os.environ.get('DB_PASSWORD', ''),
-        'HOST': os.environ.get('DB_HOST', 'localhost'),
-        'PORT': os.environ.get('DB_PORT', '5432'),
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',  # Utilise un chemin relatif sûr
     }
 }
-
 # Password validation
 # https://docs.djangoproject.com/en/4.x/ref/settings/#auth-password-validators
 
@@ -155,6 +167,8 @@ REST_FRAMEWORK = {
     ),
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 20,
+
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
 
 # JWT Configuration
@@ -172,3 +186,19 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:3000",
 ]
 CORS_ALLOW_CREDENTIALS = True
+
+
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'API E-CMS',
+    # Ajoutez d'autres options de personnalisation Redoc ici si vous le souhaitez
+    'REDOC_UI_SETTINGS': {
+        'theme': {
+            'colors': {
+                'primary': {
+                    'main': '#8B0000', # Couleur Redoc
+                },
+            },
+        },
+    },
+}
