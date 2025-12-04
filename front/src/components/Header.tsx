@@ -36,25 +36,13 @@ export function Header() {
           <div className="relative">
             <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-white/20">
               <div className="grid grid-cols-2 gap-4">
-                <div className="bg-white/20 backdrop-blur-sm p-6 rounded-xl">
-                  <Building2 className="h-8 w-8 mb-3" />
-                  <div className="text-white">Gestion Complète</div>
-                  <p className="text-green-50 text-sm">Interface intuitive</p>
-                </div>
-                <div className="bg-white/20 backdrop-blur-sm p-6 rounded-xl">
-                  <Globe className="h-8 w-8 mb-3" />
-                  <div className="text-white">Multilingue</div>
-                  <p className="text-green-50 text-sm">FR & EN</p>
-                </div>
-                <div className="bg-white/20 backdrop-blur-sm p-6 rounded-xl">
-                  <Users className="h-8 w-8 mb-3" />
-                  <div className="text-white">Citoyen First</div>
-                  <p className="text-green-50 text-sm">Services en ligne</p>
-                </div>
-                <div className="bg-white/20 backdrop-blur-sm p-6 rounded-xl">
-                  <div className="text-white">100%</div>
-                  <p className="text-green-50 text-sm">Camerounais</p>
-                </div>
+                {infoSections.map((section) => (
+                  <div className="bg-white/20 backdrop-blur-sm p-6 rounded-xl" key={section.title}>
+                    {section.icon}
+                    <div className="text-white">{section.title}</div>
+                    <p className="text-green-50 text-sm">{section.description}</p>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
@@ -64,9 +52,36 @@ export function Header() {
       {/* Wave decoration */}
       <div className="absolute bottom-0 left-0 right-0">
         <svg viewBox="0 0 1440 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M0 120L60 110C120 100 240 80 360 70C480 60 600 60 720 65C840 70 960 80 1080 85C1200 90 1320 90 1380 90L1440 90V120H1380C1320 120 1200 120 1080 120C960 120 840 120 720 120C600 120 480 120 360 120C240 120 120 120 60 120H0Z" fill="white"/>
+          <path 
+            d="M0 120L60 110C120 100 240 80 360 70C480 60 600 60 720 65C840 70 960 80 1080 85C1200 90 1320 90 1380 90L1440 90V120H1380C1320 120 1200 120 1080 120C960 120 840 120 720 120C600 120 480 120 360 120C240 120 120 120 60 120H0Z" 
+            fill="white"
+          />
         </svg>
       </div>
     </div>
   );
 }
+
+// Info Sections Data
+const infoSections = [
+  {
+    title: "Gestion Complète",
+    description: "Interface intuitive",
+    icon: <Building2 className="h-8 w-8 mb-3" />
+  },
+  {
+    title: "Multilingue",
+    description: "FR & EN",
+    icon: <Globe className="h-8 w-8 mb-3" />
+  },
+  {
+    title: "Citoyen First",
+    description: "Services en ligne",
+    icon: <Users className="h-8 w-8 mb-3" />
+  },
+  {
+    title: "100%",
+    description: "Camerounais",
+    icon: <div className="text-white">100%</div>
+  },
+];
