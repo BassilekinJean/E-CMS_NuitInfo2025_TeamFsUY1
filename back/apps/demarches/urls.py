@@ -11,13 +11,12 @@ urlpatterns = [
     # ===== Formulaires (Agent) =====
     path('formulaires/', views.FormulairesGestionView.as_view(), name='formulaires-gestion'),
     path('formulaires/gestion/<int:pk>/', views.FormulaireGestionDetailView.as_view(), name='formulaire-gestion-detail'),
-    path('formulaires/<int:formulaire_id>/champs/', views.ChampFormulaireGestionView.as_view(), name='champ-create'),
-    path('champs/<int:pk>/', views.ChampFormulaireDetailView.as_view(), name='champ-detail'),
     
     # ===== Démarches (Citoyen) =====
     path('mes-demarches/', views.MesDemarchesView.as_view(), name='mes-demarches'),
     path('mes-demarches/<int:pk>/', views.DemarcheDetailCitoyenView.as_view(), name='ma-demarche-detail'),
     path('soumettre/', views.SoumettreDemarcheView.as_view(), name='soumettre-demarche'),
+    path('suivi/<str:numero_suivi>/', views.SuivreDemarcheView.as_view(), name='suivre-demarche'),
     
     # ===== Démarches (Agent) =====
     path('agent/', views.DemarchesAgentListView.as_view(), name='demarches-agent'),
@@ -28,6 +27,7 @@ urlpatterns = [
     path('signalements/mes/', views.MesSignalementsView.as_view(), name='mes-signalements'),
     path('signalements/mes/<int:pk>/', views.SignalementDetailCitoyenView.as_view(), name='mon-signalement'),
     path('signalements/creer/', views.CreerSignalementView.as_view(), name='creer-signalement'),
+    path('signalements/suivi/<str:numero_suivi>/', views.SuivreSignalementView.as_view(), name='suivre-signalement'),
     
     # ===== Signalements (Agent) =====
     path('signalements/', views.SignalementsAgentListView.as_view(), name='signalements-agent'),
