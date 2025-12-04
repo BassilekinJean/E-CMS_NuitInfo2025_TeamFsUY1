@@ -1,20 +1,21 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
-from .models import ProfilCitoyen, ProfilAgentCommunal
+from .models import ProfilAgentCommunal
 
 Utilisateur = get_user_model()
 
 
 class InscriptionSerializer(serializers.ModelSerializer):
-    """Serializer pour l'inscription des utilisateurs"""
+    """Serializer pour l'inscription des utilisateurs (agents communaux)"""
     
     password = serializers.CharField(write_only=True, validators=[validate_password])
     password_confirm = serializers.CharField(write_only=True)
+    role = serializers.ChoiceField(choices=Utilisateur.Role.choices, required=True)
     
     class Meta:
         model = Utilisateur
-        fields = ['email', 'nom', 'password', 'password_confirm', 'telephone', 'adresse']
+        fields = ['email', 'nom', 'password', 'password_confirm', 'role', 'telephone', 'adresse', 'mairie']
     
     def validate(self, attrs):
         if attrs['password'] != attrs['password_confirm']:
@@ -25,8 +26,11 @@ class InscriptionSerializer(serializers.ModelSerializer):
         validated_data.pop('password_confirm')
         password = validated_data.pop('password')
         utilisateur = Utilisateur.objects.create_user(password=password, **validated_data)
-        # Créer le profil citoyen par défaut
-        ProfilCitoyen.objects.create(utilisateur=utilisateur)
+        
+        # Créer le profil agent si c'est un agent communal
+        if utilisateur.role == Utilisateur.Role.AGENT_COMMUNAL:
+            ProfilAgentCommunal.objects.create(utilisateur=utilisateur)
+        
         return utilisateur
 
 
@@ -55,20 +59,6 @@ class UtilisateurListSerializer(serializers.ModelSerializer):
         fields = ['id', 'email', 'nom', 'role', 'role_display', 'is_active']
 
 
-class ProfilCitoyenSerializer(serializers.ModelSerializer):
-    """Serializer pour le profil citoyen"""
-    
-    utilisateur = UtilisateurSerializer(read_only=True)
-    
-    class Meta:
-        model = ProfilCitoyen
-        fields = [
-            'id', 'utilisateur', 'date_naissance', 'lieu_naissance', 'numero_identite',
-            'notification_email', 'notification_sms', 'abonne_newsletter'
-        ]
-        read_only_fields = ['id', 'utilisateur']
-
-
 class ProfilAgentCommunalSerializer(serializers.ModelSerializer):
     """Serializer pour le profil agent communal"""
     
@@ -95,6 +85,45 @@ class ChangerMotDePasseSerializer(serializers.Serializer):
         if attrs['nouveau_mot_de_passe'] != attrs['confirmer_mot_de_passe']:
             raise serializers.ValidationError({'nouveau_mot_de_passe': 'Les mots de passe ne correspondent pas.'})
         return attrs
+
+
+# ===== Authentification Avancée =====
+
+class DemandeResetPasswordSerializer(serializers.Serializer):
+    """Serializer pour demander la réinitialisation du mot de passe"""
+    
+    email = serializers.EmailField(required=True)
+    
+    def validate_email(self, value):
+        # On ne révèle pas si l'email existe ou non (sécurité)
+        return value.lower()
+
+
+class ConfirmerResetPasswordSerializer(serializers.Serializer):
+    """Serializer pour confirmer la réinitialisation du mot de passe"""
+    
+    token = serializers.CharField(required=True)
+    nouveau_mot_de_passe = serializers.CharField(required=True, validators=[validate_password])
+    confirmer_mot_de_passe = serializers.CharField(required=True)
+    
+    def validate(self, attrs):
+        if attrs['nouveau_mot_de_passe'] != attrs['confirmer_mot_de_passe']:
+            raise serializers.ValidationError({
+                'nouveau_mot_de_passe': 'Les mots de passe ne correspondent pas.'
+            })
+        return attrs
+
+
+class VerifierEmailSerializer(serializers.Serializer):
+    """Serializer pour vérifier l'email"""
+    
+    token = serializers.CharField(required=True)
+
+
+class RenvoiVerificationEmailSerializer(serializers.Serializer):
+    """Serializer pour renvoyer l'email de vérification"""
+    
+    email = serializers.EmailField(required=True)
 
 
 class CreerAgentSerializer(serializers.ModelSerializer):

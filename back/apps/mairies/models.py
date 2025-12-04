@@ -84,10 +84,6 @@ class Mairie(models.Model):
     def get_agents(self):
         """Retourne tous les agents de cette mairie"""
         return self.utilisateurs.filter(role='agent_communal')
-    
-    def get_citoyens(self):
-        """Retourne tous les citoyens inscrits à cette mairie"""
-        return self.utilisateurs.filter(role='citoyen')
 
 
 class DemandeCreationSite(models.Model):

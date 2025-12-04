@@ -11,6 +11,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     
     # ===== API Endpoints =====
+    path('api/users/', include('apps.users.urls')),
     path('api/mairies/', include('apps.mairies.urls')),
     path('api/demarches/', include('apps.demarches.urls')),
     path('api/documents/', include('apps.documents.urls')),

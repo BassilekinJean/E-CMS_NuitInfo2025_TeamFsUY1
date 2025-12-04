@@ -187,18 +187,78 @@ CORS_ALLOWED_ORIGINS = [
 ]
 CORS_ALLOW_CREDENTIALS = True
 
+# ===== Email Configuration =====
+# En développement, les emails sont affichés dans la console
+EMAIL_BACKEND = os.environ.get(
+    'EMAIL_BACKEND', 
+    'django.core.mail.backends.console.EmailBackend'
+)
 
+# Configuration SMTP pour production
+EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
+EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 587))
+EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True').lower() in ('true', '1', 'yes')
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
+DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'E-CMS <noreply@ecms.cm>')
 
+# URL du frontend pour les liens dans les emails
+FRONTEND_URL = os.environ.get('FRONTEND_URL', 'http://localhost:3000')
+
+# Durée de validité des tokens (en heures)
+EMAIL_VERIFICATION_TOKEN_EXPIRY = 24  # 24 heures
+PASSWORD_RESET_TOKEN_EXPIRY = 1  # 1 heure
+
+# ===== API Documentation (drf-spectacular) =====
 SPECTACULAR_SETTINGS = {
-    'TITLE': 'API E-CMS',
-    # Ajoutez d'autres options de personnalisation Redoc ici si vous le souhaitez
+    'TITLE': 'E-CMS API',
+    'DESCRIPTION': '''
+## 🏛️ E-CMS - Système de Gestion de Contenu pour Mairies
+
+API REST complète pour la gestion des services municipaux camerounais.
+
+### 🔐 Authentification
+L'API utilise **JWT (JSON Web Tokens)** pour l'authentification.
+- Obtenez un token via `/api/users/connexion/`
+- Incluez le header: `Authorization: Bearer <votre_token>`
+
+### 📧 Vérification Email
+- À l'inscription, un email de vérification est envoyé
+- Utilisez `/api/users/email/verifier/` avec le token reçu
+
+### 🔑 Réinitialisation Mot de Passe
+- Demandez un reset via `/api/users/password/reset/`
+- Confirmez avec `/api/users/password/reset/confirmer/`
+
+### 👥 Rôles Utilisateurs
+- **Agent Communal** : Gestion d'une mairie
+- **Admin National** : Super administrateur
+    ''',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+    'COMPONENT_SPLIT_REQUEST': True,
+    'TAGS': [
+        {'name': 'Authentification', 'description': 'Inscription, connexion, tokens JWT'},
+        {'name': 'Utilisateurs', 'description': 'Gestion des profils utilisateurs'},
+        {'name': 'Mairies', 'description': 'Gestion des mairies et leurs informations'},
+        {'name': 'Démarches', 'description': 'Formulaires et demandes administratives'},
+        {'name': 'Documents', 'description': 'Gestion des documents officiels'},
+        {'name': 'Projets', 'description': 'Projets municipaux et budgets participatifs'},
+        {'name': 'Événements', 'description': 'Événements et newsletters'},
+    ],
     'REDOC_UI_SETTINGS': {
         'theme': {
             'colors': {
                 'primary': {
-                    'main': '#8B0000', # Couleur Redoc
+                    'main': '#1E40AF',
                 },
             },
+            'typography': {
+                'fontSize': '15px',
+                'fontFamily': 'Inter, -apple-system, BlinkMacSystemFont, sans-serif',
+            },
         },
+        'hideDownloadButton': False,
+        'expandResponses': '200,201',
     },
 }

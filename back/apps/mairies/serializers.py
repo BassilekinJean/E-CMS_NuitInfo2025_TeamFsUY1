@@ -30,7 +30,6 @@ class MairieDetailSerializer(serializers.ModelSerializer):
     
     services = ServiceMunicipalSerializer(many=True, read_only=True)
     nombre_agents = serializers.SerializerMethodField()
-    nombre_citoyens = serializers.SerializerMethodField()
     
     class Meta:
         model = Mairie
@@ -44,15 +43,12 @@ class MairieDetailSerializer(serializers.ModelSerializer):
             'statut', 'horaires_ouverture',
             'latitude', 'longitude',
             'date_creation', 'date_modification', 'date_validation',
-            'services', 'nombre_agents', 'nombre_citoyens'
+            'services', 'nombre_agents'
         ]
         read_only_fields = ['id', 'slug', 'date_creation', 'date_modification', 'date_validation']
     
     def get_nombre_agents(self, obj):
         return obj.get_agents().count()
-    
-    def get_nombre_citoyens(self, obj):
-        return obj.get_citoyens().count()
 
 
 class MairiePublicSerializer(serializers.ModelSerializer):

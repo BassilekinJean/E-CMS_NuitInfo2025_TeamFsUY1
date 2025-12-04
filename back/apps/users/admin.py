@@ -1,12 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from .models import Utilisateur, ProfilCitoyen, ProfilAgentCommunal
-
-
-class ProfilCitoyenInline(admin.StackedInline):
-    model = ProfilCitoyen
-    can_delete = False
-    verbose_name = 'Profil Citoyen'
+from .models import Utilisateur, ProfilAgentCommunal
 
 
 class ProfilAgentCommunalInline(admin.StackedInline):
@@ -38,18 +32,9 @@ class UtilisateurAdmin(BaseUserAdmin):
     )
     
     def get_inlines(self, request, obj=None):
-        if obj:
-            if obj.role == Utilisateur.Role.CITOYEN:
-                return [ProfilCitoyenInline]
-            elif obj.role == Utilisateur.Role.AGENT_COMMUNAL:
-                return [ProfilAgentCommunalInline]
+        if obj and obj.role == Utilisateur.Role.AGENT_COMMUNAL:
+            return [ProfilAgentCommunalInline]
         return []
-
-
-@admin.register(ProfilCitoyen)
-class ProfilCitoyenAdmin(admin.ModelAdmin):
-    list_display = ['utilisateur', 'date_naissance', 'abonne_newsletter']
-    search_fields = ['utilisateur__nom', 'utilisateur__email']
 
 
 @admin.register(ProfilAgentCommunal)

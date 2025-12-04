@@ -2,10 +2,14 @@ from django.urls import path
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from .views import (
     InscriptionView, DeconnexionView,
-    ProfilUtilisateurView, ProfilCitoyenView, ProfilAgentView,
+    ProfilUtilisateurView, ProfilAgentView,
     ChangerMotDePasseView,
     ListeUtilisateursView, DetailUtilisateurView,
-    CreerAgentView, ActiverDesactiverUtilisateurView
+    CreerAgentView, ActiverDesactiverUtilisateurView,
+    # Authentification avancée
+    VerifierEmailView, RenvoiVerificationEmailView,
+    DemandeResetPasswordView, ConfirmerResetPasswordView,
+    VerifierTokenView
 )
 
 urlpatterns = [
@@ -15,9 +19,17 @@ urlpatterns = [
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('deconnexion/', DeconnexionView.as_view(), name='deconnexion'),
     
+    # Vérification email
+    path('email/verifier/', VerifierEmailView.as_view(), name='verifier_email'),
+    path('email/renvoyer-verification/', RenvoiVerificationEmailView.as_view(), name='renvoyer_verification'),
+    
+    # Réinitialisation mot de passe
+    path('password/reset/', DemandeResetPasswordView.as_view(), name='demande_reset_password'),
+    path('password/reset/confirmer/', ConfirmerResetPasswordView.as_view(), name='confirmer_reset_password'),
+    path('token/verifier/<str:token>/', VerifierTokenView.as_view(), name='verifier_token'),
+    
     # Profil utilisateur connecté
     path('profil/', ProfilUtilisateurView.as_view(), name='profil'),
-    path('profil/citoyen/', ProfilCitoyenView.as_view(), name='profil_citoyen'),
     path('profil/agent/', ProfilAgentView.as_view(), name='profil_agent'),
     path('profil/mot-de-passe/', ChangerMotDePasseView.as_view(), name='changer_mot_de_passe'),
     
