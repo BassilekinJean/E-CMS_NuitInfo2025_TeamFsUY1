@@ -1,34 +1,30 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
-
-function App() {
-  const [count, setCount] = useState(0)
-
+import React from 'react'
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+const App = () => {
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the new Vite and React logos to learn more
-      </p>
-    </>
+    <Router>
+      <Routes>
+         {/* PAGE D’ACCUEIL */}
+        <Route path="/" element={<div>App</div>} />
+        {/* SIGNUP */}
+        <Route path="/signup" element={<div>Signup</div>} />
+        {/* LOGIN */}
+        <Route path="/login" element={<div>Login</div>} />
+        {/* FORGET PASSWORD */}
+        <Route path="/forget-password" element={<div>Forget Password</div>} />
+        {/* RESET PASSWORD */}
+        <Route path="/reset-password" element={<div>Reset Password</div>} />
+        {/* PROFILE */}
+        <Route path="/profile" element={<div>Profile</div>} />
+        {/* SETTINGS */}
+        <Route path="/settings" element={<div>Settings</div>} />
+        {/* LOGOUT */}
+        <Route path="/logout" element={<div>Logout</div>} />
+        {/* NOT FOUND */}
+        <Route path="*" element={<div>404 Not Found</div>} />
+
+      </Routes>
+    </Router>
   )
 }
 
