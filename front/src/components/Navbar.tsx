@@ -1,9 +1,41 @@
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Building2, Menu, X } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import logo from '../assets/logo.png';
 export function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const scrollToSection = (sectionId: string) => {
+    if (location.pathname !== '/') {
+      navigate('/');
+      // Un petit délai pour s'assurer que la page a le temps de se charger
+      setTimeout(() => {
+        const section = document.getElementById(sectionId);
+        if (section) {
+          section.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 100);
+    } else {
+      const section = document.getElementById(sectionId);
+      if (section) {
+        section.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+    setIsMenuOpen(false);
+  };
+
+  const scrollToTop = () => {
+    if (location.pathname !== '/') {
+      navigate('/');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    setIsMenuOpen(false);
+  };
 
   return (
     <nav className="bg-white shadow-md sticky top-0 z-50">
@@ -18,15 +50,24 @@ export function Navbar() {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-8">
-            <Link to="/" className="text-gray-700 hover:text-green-600 transition-colors">
+            <button 
+              onClick={scrollToTop}
+              className="text-gray-700 hover:text-green-600 transition-colors bg-transparent border-none cursor-pointer"
+            >
               Accueil
-            </Link>
-            <Link to="/features" className="text-gray-700 hover:text-green-600 transition-colors">
+            </button>
+            <button 
+              onClick={() => scrollToSection('features')}
+              className="text-gray-700 hover:text-green-600 transition-colors bg-transparent border-none cursor-pointer"
+            >
               Fonctionnalités
-            </Link>
-            <a href="#contact" className="text-gray-700 hover:text-green-600 transition-colors">
+            </button>
+            <button 
+              onClick={() => scrollToSection('contact')}
+              className="text-gray-700 hover:text-green-600 transition-colors bg-transparent border-none cursor-pointer"
+            >
               Contact
-            </a>
+            </button>
             <Link to="/login" className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors">
               Connexion
             </Link>
@@ -44,27 +85,33 @@ export function Navbar() {
         {/* Mobile Navigation */}
         {isMenuOpen && (
           <div className="md:hidden pb-4 flex flex-col gap-4">
-            <Link 
-              to="/" 
-              className="text-gray-700 hover:text-green-600 transition-colors"
-              onClick={() => setIsMenuOpen(false)}
+            <button 
+              onClick={() => {
+                scrollToTop();
+                setIsMenuOpen(false);
+              }}
+              className="w-full text-left text-gray-700 hover:text-green-600 transition-colors bg-transparent border-none cursor-pointer"
             >
               Accueil
-            </Link>
-            <Link 
-              to="/features" 
-              className="text-gray-700 hover:text-green-600 transition-colors"
-              onClick={() => setIsMenuOpen(false)}
+            </button>
+            <button 
+              onClick={() => {
+                scrollToSection('features');
+                setIsMenuOpen(false);
+              }}
+              className="w-full text-left text-gray-700 hover:text-green-600 transition-colors bg-transparent border-none cursor-pointer"
             >
               Fonctionnalités
-            </Link>
-            <a 
-              href="#contact" 
-              className="text-gray-700 hover:text-green-600 transition-colors"
-              onClick={() => setIsMenuOpen(false)}
+            </button>
+            <button 
+              onClick={() => {
+                scrollToSection('contact');
+                setIsMenuOpen(false);
+              }}
+              className="w-full text-left text-gray-700 hover:text-green-600 transition-colors bg-transparent border-none cursor-pointer"
             >
               Contact
-            </a>
+            </button>
             <Link 
               to="/login" 
               className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors text-center"
