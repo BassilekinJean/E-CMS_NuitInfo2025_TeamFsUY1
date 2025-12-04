@@ -2,7 +2,7 @@ import { ArrowRight, Building2, Globe, Users } from 'lucide-react';
 
 export function Header() {
   return (
-    <div className="relative bg-gradient-to-br from-green-700 via-green-600 to-yellow-500 text-white">
+    <div className="relative bg-gradient-to-br from-green-700 via-green-600 to-yellow-500 text-white h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-32">
         <div className="grid md:grid-cols-2 gap-12 items-center">
           <div className="space-y-6">
