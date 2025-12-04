@@ -14,7 +14,8 @@ class DocumentOfficielListSerializer(serializers.ModelSerializer):
         model = DocumentOfficiel
         fields = [
             'id', 'titre', 'type_document', 'type_document_display',
-            'mairie_nom', 'date_publication', 'est_public'
+            'categorie', 'annee', 'mairie_nom', 'date_publication',
+            'est_public', 'nombre_telechargements'
         ]
 
 
@@ -22,16 +23,18 @@ class DocumentOfficielDetailSerializer(serializers.ModelSerializer):
     """Serializer détaillé pour un document"""
     
     mairie_nom = serializers.CharField(source='mairie.nom', read_only=True)
-    publie_par_nom = serializers.CharField(source='publie_par.get_full_name', read_only=True)
+    auteur_nom = serializers.CharField(source='auteur.nom', read_only=True)
     
     class Meta:
         model = DocumentOfficiel
         fields = [
-            'id', 'titre', 'description', 'type_document', 'fichier',
-            'mairie', 'mairie_nom', 'est_public', 'publie_par', 
-            'publie_par_nom', 'date_publication', 'date_modification'
+            'id', 'titre', 'description', 'type_document', 'fichier_joint',
+            'mairie', 'mairie_nom', 'auteur', 'auteur_nom',
+            'categorie', 'annee', 'numero_reference', 'date_document',
+            'est_public', 'est_mis_en_avant', 'taille_fichier', 'type_mime',
+            'nombre_telechargements', 'date_publication', 'date_modification'
         ]
-        read_only_fields = ['mairie', 'publie_par']
+        read_only_fields = ['mairie', 'auteur', 'taille_fichier', 'type_mime', 'nombre_telechargements']
 
 
 class DocumentOfficielCreateSerializer(serializers.ModelSerializer):
@@ -39,7 +42,11 @@ class DocumentOfficielCreateSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = DocumentOfficiel
-        fields = ['titre', 'description', 'type_document', 'fichier', 'est_public']
+        fields = [
+            'titre', 'description', 'type_document', 'fichier_joint',
+            'categorie', 'annee', 'numero_reference', 'date_document',
+            'est_public', 'est_mis_en_avant'
+        ]
 
 
 # ===== Actualités =====
@@ -48,14 +55,15 @@ class ActualiteListSerializer(serializers.ModelSerializer):
     """Serializer pour la liste des actualités"""
     
     mairie_nom = serializers.CharField(source='mairie.nom', read_only=True)
-    auteur_nom = serializers.CharField(source='auteur.get_full_name', read_only=True)
+    auteur_nom = serializers.CharField(source='auteur.nom', read_only=True)
+    categorie_display = serializers.CharField(source='get_categorie_display', read_only=True)
     
     class Meta:
         model = Actualite
         fields = [
-            'id', 'titre', 'resume', 'image', 'mairie_nom', 
-            'auteur_nom', 'categorie', 'est_mise_en_avant',
-            'date_publication', 'est_publie'
+            'id', 'titre', 'slug', 'resume', 'image_principale',
+            'mairie_nom', 'auteur_nom', 'categorie', 'categorie_display',
+            'est_mis_en_avant', 'est_publie', 'date_publication', 'nombre_vues'
         ]
 
 
@@ -63,23 +71,18 @@ class ActualiteDetailSerializer(serializers.ModelSerializer):
     """Serializer détaillé pour une actualité"""
     
     mairie_nom = serializers.CharField(source='mairie.nom', read_only=True)
-    auteur = serializers.SerializerMethodField()
+    auteur_nom = serializers.CharField(source='auteur.nom', read_only=True)
     
     class Meta:
         model = Actualite
         fields = [
-            'id', 'titre', 'resume', 'contenu', 'image', 'mairie', 
-            'mairie_nom', 'auteur', 'categorie', 'tags', 
-            'est_mise_en_avant', 'est_publie', 'date_publication',
+            'id', 'titre', 'slug', 'resume', 'contenu', 'image_principale',
+            'mairie', 'mairie_nom', 'auteur', 'auteur_nom',
+            'categorie', 'est_mis_en_avant', 'est_publie',
+            'date_publication', 'nombre_vues',
             'date_creation', 'date_modification'
         ]
-        read_only_fields = ['mairie', 'auteur']
-    
-    def get_auteur(self, obj):
-        return {
-            'id': obj.auteur.id,
-            'nom_complet': obj.auteur.get_full_name()
-        }
+        read_only_fields = ['mairie', 'auteur', 'slug', 'nombre_vues']
 
 
 class ActualiteCreateSerializer(serializers.ModelSerializer):
@@ -88,8 +91,8 @@ class ActualiteCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Actualite
         fields = [
-            'titre', 'resume', 'contenu', 'image', 'categorie',
-            'tags', 'est_mise_en_avant', 'est_publie', 'date_publication'
+            'titre', 'resume', 'contenu', 'image_principale',
+            'categorie', 'est_mis_en_avant', 'est_publie', 'date_publication'
         ]
 
 
@@ -104,7 +107,7 @@ class PageCMSListSerializer(serializers.ModelSerializer):
     class Meta:
         model = PageCMS
         fields = [
-            'id', 'titre', 'slug', 'mairie_nom', 'parent_titre',
+            'id', 'titre', 'slug', 'mairie_nom', 'parent', 'parent_titre',
             'ordre', 'est_publie', 'afficher_dans_menu', 'date_modification'
         ]
 
@@ -113,24 +116,38 @@ class PageCMSDetailSerializer(serializers.ModelSerializer):
     """Serializer détaillé pour une page"""
     
     mairie_nom = serializers.CharField(source='mairie.nom', read_only=True)
-    cree_par_nom = serializers.CharField(source='cree_par.get_full_name', read_only=True)
-    modifie_par_nom = serializers.CharField(source='modifie_par.get_full_name', read_only=True)
     sous_pages = serializers.SerializerMethodField()
     
     class Meta:
         model = PageCMS
         fields = [
-            'id', 'titre', 'slug', 'contenu', 'meta_description',
-            'mairie', 'mairie_nom', 'parent', 'ordre', 'est_publie',
-            'afficher_dans_menu', 'template', 'cree_par', 'cree_par_nom',
-            'modifie_par', 'modifie_par_nom', 'sous_pages',
-            'date_creation', 'date_modification'
+            'id', 'titre', 'slug', 'contenu', 'mairie', 'mairie_nom',
+            'parent', 'ordre', 'afficher_dans_menu', 'est_publie',
+            'meta_titre', 'meta_description', 'image_bandeau',
+            'sous_pages', 'date_creation', 'date_modification'
         ]
-        read_only_fields = ['mairie', 'cree_par', 'modifie_par']
+        read_only_fields = ['mairie', 'slug']
     
     def get_sous_pages(self, obj):
-        sous_pages = obj.sous_pages.filter(est_publie=True)
-        return PageCMSListSerializer(sous_pages, many=True).data
+        enfants = obj.enfants.filter(est_publie=True).order_by('ordre')
+        return PageCMSListSerializer(enfants, many=True).data
+
+
+class PageCMSPublicSerializer(serializers.ModelSerializer):
+    """Serializer public pour une page"""
+    
+    sous_pages = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = PageCMS
+        fields = [
+            'id', 'titre', 'slug', 'contenu', 'image_bandeau',
+            'meta_titre', 'meta_description', 'sous_pages'
+        ]
+    
+    def get_sous_pages(self, obj):
+        enfants = obj.enfants.filter(est_publie=True).order_by('ordre')
+        return [{'id': p.id, 'titre': p.titre, 'slug': p.slug} for p in enfants]
 
 
 class PageCMSCreateSerializer(serializers.ModelSerializer):
@@ -139,56 +156,14 @@ class PageCMSCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = PageCMS
         fields = [
-            'titre', 'slug', 'contenu', 'meta_description', 'parent',
-            'ordre', 'est_publie', 'afficher_dans_menu', 'template'
+            'titre', 'contenu', 'parent', 'ordre',
+            'afficher_dans_menu', 'est_publie',
+            'meta_titre', 'meta_description', 'image_bandeau'
         ]
 
-
-class PageCMSPublicSerializer(serializers.ModelSerializer):
-    """Serializer public pour une page (sans infos sensibles)"""
-    
-    sous_pages = serializers.SerializerMethodField()
-    
-    class Meta:
-        model = PageCMS
-        fields = [
-            'id', 'titre', 'slug', 'contenu', 'meta_description',
-            'sous_pages', 'date_modification'
-        ]
-    
-    def get_sous_pages(self, obj):
-        sous_pages = obj.sous_pages.filter(est_publie=True, afficher_dans_menu=True)
-        return [{'id': p.id, 'titre': p.titre, 'slug': p.slug} for p in sous_pages]
-
-
-# ===== FAQ =====
-
-class FAQSerializer(serializers.ModelSerializer):
-    """Serializer pour les FAQ"""
-    
-    mairie_nom = serializers.CharField(source='mairie.nom', read_only=True)
-    
-    class Meta:
-        model = FAQ
-        fields = [
-            'id', 'question', 'reponse', 'categorie', 'mairie', 
-            'mairie_nom', 'ordre', 'est_publie', 'date_creation'
-        ]
-        read_only_fields = ['mairie']
-
-
-class FAQPublicSerializer(serializers.ModelSerializer):
-    """Serializer public pour FAQ"""
-    
-    class Meta:
-        model = FAQ
-        fields = ['id', 'question', 'reponse', 'categorie']
-
-
-# ===== Menu de Navigation =====
 
 class MenuNavigationSerializer(serializers.Serializer):
-    """Serializer pour le menu de navigation d'une mairie"""
+    """Serializer pour le menu de navigation"""
     
     def to_representation(self, mairie):
         pages = PageCMS.objects.filter(
@@ -206,8 +181,9 @@ class MenuNavigationSerializer(serializers.Serializer):
                 'slug': page.slug,
                 'sous_pages': []
             }
-            sous_pages = page.sous_pages.filter(
-                est_publie=True, 
+            
+            sous_pages = page.enfants.filter(
+                est_publie=True,
                 afficher_dans_menu=True
             ).order_by('ordre')
             
@@ -220,4 +196,26 @@ class MenuNavigationSerializer(serializers.Serializer):
             
             menu.append(item)
         
-        return menu
+        return {'menu': menu}
+
+
+# ===== FAQ =====
+
+class FAQSerializer(serializers.ModelSerializer):
+    """Serializer pour les FAQs"""
+    
+    class Meta:
+        model = FAQ
+        fields = [
+            'id', 'question', 'reponse', 'categorie', 'ordre',
+            'est_active', 'date_creation'
+        ]
+        read_only_fields = ['date_creation']
+
+
+class FAQPublicSerializer(serializers.ModelSerializer):
+    """Serializer public pour les FAQs"""
+    
+    class Meta:
+        model = FAQ
+        fields = ['id', 'question', 'reponse', 'categorie']

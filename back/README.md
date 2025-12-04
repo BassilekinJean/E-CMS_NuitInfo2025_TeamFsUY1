@@ -1,42 +1,109 @@
-# my-django-project
+# E-CMS Backend
 
-Ce projet est une application Django qui sert de point de départ pour le développement d'applications web.
+## 🏛️ Système de Gestion de Contenu pour Mairies Camerounaises
 
-## Prérequis
+E-CMS est un CMS centralisé et multi-tenant permettant aux collectivités locales camerounaises de gérer leur présence numérique de manière simple et efficace.
 
-Avant de commencer, assurez-vous d'avoir installé Python et pip sur votre machine.
+## 🚀 Technologies
 
-## Installation
+- **Django 4.2** - Framework Python
+- **Django REST Framework** - API REST
+- **PostgreSQL** - Base de données
+- **JWT** - Authentification (SimpleJWT)
 
-1. Clonez le dépôt ou téléchargez les fichiers du projet.
-2. Accédez au répertoire du projet :
-   ```
-   cd my-django-project
-   ```
-3. Installez les dépendances requises :
-   ```
-   pip install -r requirements.txt
-   ```
+## 📁 Structure du Projet
 
-## Lancer le serveur de développement
-
-Pour démarrer le serveur de développement, exécutez la commande suivante :
 ```
+back/
+├── ecms/                    # Configuration Django
+│   ├── settings.py          # Paramètres du projet
+│   ├── urls.py              # Routes principales
+│   ├── wsgi.py              # WSGI application
+│   └── asgi.py              # ASGI application
+├── apps/                    # Applications Django
+│   ├── users/               # Gestion des utilisateurs
+│   ├── mairies/             # Gestion des mairies
+│   ├── demarches/           # Démarches administratives
+│   ├── documents/           # Documents et actualités
+│   ├── projets/             # Projets municipaux
+│   └── evenements/          # Événements
+├── manage.py
+├── requirements.txt
+└── .env                     # Variables d'environnement
+```
+
+## 🔐 Rôles Utilisateurs
+
+| Rôle | Description |
+|------|-------------|
+| **Admin National** | Gestion complète de toutes les mairies |
+| **Agent Communal** | Gestion de sa mairie |
+| **Citoyen** | Accès aux services de sa mairie |
+
+## ⚙️ Installation
+
+### 1. Prérequis
+- Python 3.10+
+- PostgreSQL 13+
+
+### 2. Installation des dépendances
+
+```bash
+cd back
+python -m venv venv
+source venv/bin/activate  # Linux/Mac
+pip install -r requirements.txt
+```
+
+### 3. Configuration
+
+Créer un fichier `.env` :
+
+```env
+SECRET_KEY=your-secret-key
+DEBUG=True
+DB_NAME=ecms_db
+DB_USER=postgres
+DB_PASSWORD=your-password
+DB_HOST=localhost
+DB_PORT=5432
+```
+
+### 4. Base de données
+
+```bash
+# Créer la base de données PostgreSQL
+createdb ecms_db
+
+# Appliquer les migrations
+python manage.py migrate
+
+# Créer un superutilisateur
+python manage.py createsuperuser
+```
+
+### 5. Lancer le serveur
+
+```bash
 python manage.py runserver
 ```
-Vous pouvez ensuite accéder à l'application à l'adresse `http://127.0.0.1:8000/`.
 
-## Structure du projet
+## 🔌 API Endpoints
 
-- `manage.py`: Point d'entrée de l'application.
-- `my_project/`: Contient la configuration principale du projet.
-- `my_app/`: Contient l'application Django avec ses modèles, vues et tests.
-- `requirements.txt`: Liste des dépendances du projet.
+| Endpoint | Description |
+|----------|-------------|
+| `/admin/` | Administration Django |
+| `/api/auth/` | Authentification (inscription, connexion, JWT) |
+| `/api/mairies/` | Gestion des mairies |
+| `/api/demarches/` | Démarches et formulaires |
+| `/api/documents/` | Documents et actualités |
+| `/api/projets/` | Projets municipaux |
+| `/api/evenements/` | Événements |
 
-## Contribuer
+## 👥 Équipe
 
-Les contributions sont les bienvenues ! N'hésitez pas à soumettre des demandes de tirage ou à ouvrir des problèmes pour discuter des améliorations.
+**Nuit de l'Info 2025 - Team FsUY1**
 
-## License
+## 📄 Licence
 
-Ce projet est sous licence MIT.
+Projet hackathon - Nuit de l'Info 2025

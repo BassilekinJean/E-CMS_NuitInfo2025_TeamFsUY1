@@ -58,52 +58,47 @@ class DemarcheListSerializer(serializers.ModelSerializer):
     
     demandeur_nom = serializers.SerializerMethodField()
     formulaire_nom = serializers.CharField(source='formulaire.nom', read_only=True)
-    mairie_nom = serializers.CharField(source='mairie.nom', read_only=True)
     statut_display = serializers.CharField(source='get_statut_display', read_only=True)
     
     class Meta:
         model = DemarcheAdministrative
         fields = [
-            'id', 'numero_suivi', 'type', 'formulaire_nom', 'mairie_nom',
-            'demandeur_nom', 'statut', 'statut_display', 'date_demande'
+            'id', 'type', 'numero_suivi', 'statut', 'statut_display',
+            'demandeur_nom', 'formulaire_nom', 'date_demande', 'priorite'
         ]
     
     def get_demandeur_nom(self, obj):
         if obj.demandeur:
-            return obj.demandeur.get_full_name()
+            return obj.demandeur.nom
         return obj.nom_demandeur or 'Anonyme'
 
 
 class DemarcheDetailSerializer(serializers.ModelSerializer):
     """Serializer détaillé pour une démarche"""
     
-    demandeur = serializers.SerializerMethodField()
-    agent_traitant_nom = serializers.CharField(source='agent_traitant.get_full_name', read_only=True)
-    formulaire = FormulaireDetailSerializer(read_only=True)
+    demandeur_nom = serializers.SerializerMethodField()
+    formulaire_nom = serializers.CharField(source='formulaire.nom', read_only=True)
+    agent_traitant_nom = serializers.CharField(source='agent_traitant.nom', read_only=True)
     statut_display = serializers.CharField(source='get_statut_display', read_only=True)
+    mairie_nom = serializers.CharField(source='mairie.nom', read_only=True)
     
     class Meta:
         model = DemarcheAdministrative
         fields = [
-            'id', 'numero_suivi', 'type', 'formulaire', 'mairie',
-            'demandeur', 'statut', 'statut_display', 'donnees_formulaire',
+            'id', 'mairie', 'mairie_nom', 'formulaire', 'formulaire_nom',
+            'type', 'numero_suivi', 'statut', 'statut_display',
+            'demandeur', 'demandeur_nom', 'donnees_formulaire',
             'nom_demandeur', 'email_demandeur', 'telephone_demandeur',
-            'commentaire_agent', 'motif_rejet', 'agent_traitant', 'agent_traitant_nom',
-            'priorite', 'date_demande', 'date_prise_en_charge', 'date_traitement'
+            'agent_traitant', 'agent_traitant_nom',
+            'commentaire_agent', 'motif_rejet', 'priorite',
+            'date_demande', 'date_prise_en_charge', 'date_traitement'
         ]
+        read_only_fields = ['mairie', 'numero_suivi']
     
-    def get_demandeur(self, obj):
+    def get_demandeur_nom(self, obj):
         if obj.demandeur:
-            return {
-                'id': obj.demandeur.id,
-                'nom_complet': obj.demandeur.get_full_name(),
-                'email': obj.demandeur.email
-            }
-        return {
-            'nom': obj.nom_demandeur,
-            'email': obj.email_demandeur,
-            'telephone': obj.telephone_demandeur
-        }
+            return obj.demandeur.nom
+        return obj.nom_demandeur or 'Anonyme'
 
 
 class DemarcheSoumissionSerializer(serializers.ModelSerializer):
@@ -112,41 +107,27 @@ class DemarcheSoumissionSerializer(serializers.ModelSerializer):
     class Meta:
         model = DemarcheAdministrative
         fields = [
-            'formulaire', 'donnees_formulaire',
+            'formulaire', 'type', 'donnees_formulaire',
             'nom_demandeur', 'email_demandeur', 'telephone_demandeur'
         ]
-    
-    def validate(self, data):
-        formulaire = data.get('formulaire')
-        donnees = data.get('donnees_formulaire', {})
-        
-        if formulaire and formulaire.champs_dynamiques:
-            for champ in formulaire.champs_dynamiques:
-                if champ.get('obligatoire') and champ.get('nom') not in donnees:
-                    raise serializers.ValidationError(
-                        f"Le champ '{champ.get('label', champ.get('nom'))}' est obligatoire"
-                    )
-        
-        return data
     
     def create(self, validated_data):
         request = self.context.get('request')
         formulaire = validated_data.get('formulaire')
         
-        if request and request.user.is_authenticated:
-            validated_data['demandeur'] = request.user
-        
-        validated_data['mairie'] = formulaire.mairie
-        validated_data['type'] = formulaire.get_type_display()
-        
-        return super().create(validated_data)
+        demarche = DemarcheAdministrative.objects.create(
+            mairie=formulaire.mairie,
+            demandeur=request.user if request and request.user.is_authenticated else None,
+            **validated_data
+        )
+        return demarche
 
 
 class DemarcheTraitementSerializer(serializers.Serializer):
     """Serializer pour traiter une démarche"""
     
     statut = serializers.ChoiceField(choices=DemarcheAdministrative.Statut.choices)
-    commentaire = serializers.CharField(required=False, allow_blank=True)
+    commentaire_agent = serializers.CharField(required=False, allow_blank=True)
     motif_rejet = serializers.CharField(required=False, allow_blank=True)
 
 
@@ -156,49 +137,49 @@ class SignalementListSerializer(serializers.ModelSerializer):
     """Serializer pour liste des signalements"""
     
     signaleur_nom = serializers.SerializerMethodField()
-    mairie_nom = serializers.CharField(source='mairie.nom', read_only=True)
     categorie_display = serializers.CharField(source='get_categorie_display', read_only=True)
     statut_display = serializers.CharField(source='get_statut_display', read_only=True)
     
     class Meta:
         model = Signalement
         fields = [
-            'id', 'numero_suivi', 'titre', 'categorie', 'categorie_display',
-            'statut', 'statut_display', 'signaleur_nom', 'mairie_nom', 'date_signalement'
+            'id', 'titre', 'categorie', 'categorie_display',
+            'statut', 'statut_display', 'signaleur_nom',
+            'numero_suivi', 'date_signalement'
         ]
     
     def get_signaleur_nom(self, obj):
         if obj.signaleur:
-            return obj.signaleur.get_full_name()
+            return obj.signaleur.nom
         return 'Anonyme'
 
 
 class SignalementDetailSerializer(serializers.ModelSerializer):
     """Serializer détaillé pour un signalement"""
     
-    signaleur = serializers.SerializerMethodField()
-    agent_traitant_nom = serializers.CharField(source='agent_traitant.get_full_name', read_only=True)
+    signaleur_nom = serializers.SerializerMethodField()
+    agent_traitant_nom = serializers.CharField(source='agent_traitant.nom', read_only=True)
     categorie_display = serializers.CharField(source='get_categorie_display', read_only=True)
     statut_display = serializers.CharField(source='get_statut_display', read_only=True)
+    mairie_nom = serializers.CharField(source='mairie.nom', read_only=True)
     
     class Meta:
         model = Signalement
         fields = [
-            'id', 'numero_suivi', 'titre', 'description', 'categorie', 'categorie_display',
-            'statut', 'statut_display', 'signaleur', 'mairie',
-            'adresse', 'latitude', 'longitude', 'photo', 'email_contact',
-            'agent_traitant', 'agent_traitant_nom', 'commentaire_resolution',
+            'id', 'mairie', 'mairie_nom', 'titre', 'description',
+            'categorie', 'categorie_display', 'adresse',
+            'latitude', 'longitude', 'photo', 'email_contact',
+            'statut', 'statut_display', 'signaleur', 'signaleur_nom',
+            'agent_traitant', 'agent_traitant_nom',
+            'commentaire_resolution', 'numero_suivi',
             'date_signalement', 'date_resolution'
         ]
+        read_only_fields = ['mairie', 'numero_suivi']
     
-    def get_signaleur(self, obj):
+    def get_signaleur_nom(self, obj):
         if obj.signaleur:
-            return {
-                'id': obj.signaleur.id,
-                'nom_complet': obj.signaleur.get_full_name(),
-                'email': obj.signaleur.email
-            }
-        return {'email': obj.email_contact}
+            return obj.signaleur.nom
+        return 'Anonyme'
 
 
 class SignalementCreateSerializer(serializers.ModelSerializer):
@@ -207,15 +188,23 @@ class SignalementCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Signalement
         fields = [
-            'titre', 'description', 'categorie', 'mairie',
+            'titre', 'description', 'categorie',
             'adresse', 'latitude', 'longitude', 'photo', 'email_contact'
         ]
     
     def create(self, validated_data):
         request = self.context.get('request')
-        if request and request.user.is_authenticated:
-            validated_data['signaleur'] = request.user
-        return super().create(validated_data)
+        mairie_id = self.context.get('mairie_id')
+        
+        from apps.mairies.models import Mairie
+        mairie = Mairie.objects.get(pk=mairie_id)
+        
+        signalement = Signalement.objects.create(
+            mairie=mairie,
+            signaleur=request.user if request and request.user.is_authenticated else None,
+            **validated_data
+        )
+        return signalement
 
 
 class SignalementReponseSerializer(serializers.Serializer):
@@ -230,49 +219,38 @@ class SignalementReponseSerializer(serializers.Serializer):
 class RendezVousListSerializer(serializers.ModelSerializer):
     """Serializer pour liste des rendez-vous"""
     
-    citoyen_nom = serializers.CharField(source='citoyen.get_full_name', read_only=True)
+    citoyen_nom = serializers.CharField(source='citoyen.nom', read_only=True)
     service_nom = serializers.CharField(source='service.nom', read_only=True)
     statut_display = serializers.CharField(source='get_statut_display', read_only=True)
     
     class Meta:
         model = RendezVous
         fields = [
-            'id', 'service_nom', 'citoyen_nom', 'motif',
-            'date', 'heure_debut', 'heure_fin', 'statut', 'statut_display'
+            'id', 'motif', 'date', 'heure_debut', 'heure_fin',
+            'statut', 'statut_display', 'citoyen_nom', 'service_nom'
         ]
 
 
 class RendezVousDetailSerializer(serializers.ModelSerializer):
     """Serializer détaillé pour un rendez-vous"""
     
-    citoyen = serializers.SerializerMethodField()
-    service = serializers.SerializerMethodField()
+    citoyen_nom = serializers.CharField(source='citoyen.nom', read_only=True)
+    citoyen_email = serializers.CharField(source='citoyen.email', read_only=True)
+    citoyen_telephone = serializers.CharField(source='citoyen.telephone', read_only=True)
+    service_nom = serializers.CharField(source='service.nom', read_only=True)
     statut_display = serializers.CharField(source='get_statut_display', read_only=True)
+    mairie_nom = serializers.CharField(source='mairie.nom', read_only=True)
     
     class Meta:
         model = RendezVous
         fields = [
-            'id', 'service', 'citoyen', 'motif', 'description',
-            'date', 'heure_debut', 'heure_fin', 'statut', 'statut_display',
-            'notes', 'date_creation'
+            'id', 'mairie', 'mairie_nom', 'citoyen', 'citoyen_nom',
+            'citoyen_email', 'citoyen_telephone',
+            'service', 'service_nom', 'motif', 'description',
+            'date', 'heure_debut', 'heure_fin',
+            'statut', 'statut_display', 'notes', 'date_creation'
         ]
-    
-    def get_citoyen(self, obj):
-        return {
-            'id': obj.citoyen.id,
-            'nom_complet': obj.citoyen.get_full_name(),
-            'email': obj.citoyen.email,
-            'telephone': getattr(obj.citoyen, 'telephone', '')
-        }
-    
-    def get_service(self, obj):
-        if obj.service:
-            return {
-                'id': obj.service.id,
-                'nom': obj.service.nom,
-                'mairie': obj.service.mairie.nom
-            }
-        return None
+        read_only_fields = ['mairie', 'citoyen']
 
 
 class RendezVousDemandeSerializer(serializers.ModelSerializer):
@@ -280,24 +258,17 @@ class RendezVousDemandeSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = RendezVous
-        fields = ['mairie', 'service', 'motif', 'description', 'date', 'heure_debut', 'heure_fin']
-    
-    def validate(self, data):
-        from django.utils import timezone
-        if data['date'] < timezone.now().date():
-            raise serializers.ValidationError(
-                "La date du rendez-vous doit être dans le futur"
-            )
-        if data['heure_fin'] <= data['heure_debut']:
-            raise serializers.ValidationError(
-                "L'heure de fin doit être après l'heure de début"
-            )
-        return data
+        fields = ['service', 'motif', 'description', 'date', 'heure_debut', 'heure_fin']
     
     def create(self, validated_data):
         request = self.context.get('request')
-        validated_data['citoyen'] = request.user
-        return super().create(validated_data)
+        
+        rdv = RendezVous.objects.create(
+            mairie=request.user.mairie,
+            citoyen=request.user,
+            **validated_data
+        )
+        return rdv
 
 
 class RendezVousConfirmationSerializer(serializers.Serializer):

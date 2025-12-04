@@ -125,7 +125,7 @@ class SoumettreDemarcheView(generics.CreateAPIView):
     """Soumettre une nouvelle démarche"""
     
     serializer_class = DemarcheSoumissionSerializer
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticated]
 
 
 class DemarcheDetailCitoyenView(generics.RetrieveAPIView):
@@ -136,17 +136,6 @@ class DemarcheDetailCitoyenView(generics.RetrieveAPIView):
     
     def get_queryset(self):
         return DemarcheAdministrative.objects.filter(demandeur=self.request.user)
-
-
-class SuivreDemarcheView(APIView):
-    """Suivre une démarche par numéro de suivi"""
-    
-    permission_classes = [permissions.AllowAny]
-    
-    def get(self, request, numero_suivi):
-        demarche = get_object_or_404(DemarcheAdministrative, numero_suivi=numero_suivi)
-        serializer = DemarcheDetailSerializer(demarche)
-        return Response(serializer.data)
 
 
 class DemarchesAgentListView(generics.ListAPIView):
@@ -162,6 +151,7 @@ class DemarchesAgentListView(generics.ListAPIView):
         if not user.is_admin_national():
             queryset = queryset.filter(mairie=user.mairie)
         
+        # Filtres
         statut = self.request.query_params.get('statut')
         if statut:
             queryset = queryset.filter(statut=statut)
@@ -199,7 +189,7 @@ class TraiterDemarcheView(APIView):
         serializer.is_valid(raise_exception=True)
         
         demarche.statut = serializer.validated_data['statut']
-        demarche.commentaire_agent = serializer.validated_data.get('commentaire', '')
+        demarche.commentaire_agent = serializer.validated_data.get('commentaire_agent', '')
         demarche.motif_rejet = serializer.validated_data.get('motif_rejet', '')
         demarche.agent_traitant = user
         demarche.date_traitement = timezone.now()
@@ -230,6 +220,11 @@ class CreerSignalementView(generics.CreateAPIView):
     
     serializer_class = SignalementCreateSerializer
     permission_classes = [permissions.AllowAny]
+    
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['mairie_id'] = self.request.data.get('mairie')
+        return context
 
 
 class SignalementDetailCitoyenView(generics.RetrieveAPIView):
@@ -240,17 +235,6 @@ class SignalementDetailCitoyenView(generics.RetrieveAPIView):
     
     def get_queryset(self):
         return Signalement.objects.filter(signaleur=self.request.user)
-
-
-class SuivreSignalementView(APIView):
-    """Suivre un signalement par numéro de suivi"""
-    
-    permission_classes = [permissions.AllowAny]
-    
-    def get(self, request, numero_suivi):
-        signalement = get_object_or_404(Signalement, numero_suivi=numero_suivi)
-        serializer = SignalementDetailSerializer(signalement)
-        return Response(serializer.data)
 
 
 class SignalementsAgentListView(generics.ListAPIView):
@@ -329,7 +313,7 @@ class MesRendezVousView(generics.ListAPIView):
     def get_queryset(self):
         return RendezVous.objects.filter(
             citoyen=self.request.user
-        ).order_by('-date')
+        ).order_by('-date', '-heure_debut')
 
 
 class DemanderRendezVousView(generics.CreateAPIView):

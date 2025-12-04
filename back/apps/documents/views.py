@@ -81,7 +81,7 @@ class DocumentsGestionListView(generics.ListCreateAPIView):
             mairie = get_object_or_404(Mairie, pk=mairie_id)
         else:
             mairie = user.mairie
-        serializer.save(mairie=mairie, publie_par=user)
+        serializer.save(mairie=mairie, auteur=user)
 
 
 class DocumentGestionDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -149,7 +149,7 @@ class ActualitesEnVedetteView(generics.ListAPIView):
         return Actualite.objects.filter(
             mairie=mairie,
             est_publie=True,
-            est_mise_en_avant=True,
+            est_mis_en_avant=True,
             date_publication__lte=timezone.now()
         ).order_by('-date_publication')[:5]
 
@@ -266,7 +266,7 @@ class PagesGestionListView(generics.ListCreateAPIView):
             mairie = get_object_or_404(Mairie, pk=mairie_id)
         else:
             mairie = user.mairie
-        serializer.save(mairie=mairie, cree_par=user, modifie_par=user)
+        serializer.save(mairie=mairie)
 
 
 class PageGestionDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -280,15 +280,12 @@ class PageGestionDetailView(generics.RetrieveUpdateDestroyAPIView):
         if user.is_admin_national():
             return PageCMS.objects.all()
         return PageCMS.objects.filter(mairie=user.mairie)
-    
-    def perform_update(self, serializer):
-        serializer.save(modifie_par=self.request.user)
 
 
 # ===== FAQ =====
 
 class FAQPubliquesListView(generics.ListAPIView):
-    """Liste des FAQ publiées d'une mairie"""
+    """Liste des FAQ actives d'une mairie"""
     
     serializer_class = FAQPublicSerializer
     permission_classes = [permissions.AllowAny]
@@ -297,7 +294,7 @@ class FAQPubliquesListView(generics.ListAPIView):
         mairie_slug = self.kwargs.get('mairie_slug')
         mairie = get_object_or_404(Mairie, slug=mairie_slug)
         
-        queryset = FAQ.objects.filter(mairie=mairie, est_publie=True)
+        queryset = FAQ.objects.filter(mairie=mairie, est_active=True)
         
         categorie = self.request.query_params.get('categorie')
         if categorie:
