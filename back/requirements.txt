@@ -1,5 +1,20 @@
-Django>=3.2,<4.0
-djangorestframework>=3.12,<4.0
+# E-CMS - Dépendances Python
+# Framework Django
+Django>=4.2,<5.0
+djangorestframework>=3.14,<4.0
+djangorestframework-simplejwt>=5.3,<6.0
+
+# Base de données
 psycopg2-binary>=2.9,<3.0
-gunicorn>=20.1,<21.0
-django-cors-headers>=3.10,<4.0
+
+# CORS
+django-cors-headers>=4.3,<5.0
+
+# Serveur de production
+gunicorn>=21.0,<22.0
+
+# Gestion des fichiers images
+Pillow>=10.0,<11.0
+
+# Variables d'environnement
+python-dotenv>=1.0,<2.0
