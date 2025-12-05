@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import LandingPage from './LandingPage';
 import { Login } from './components/Login';
 import { ForgotPassword } from './components/ForgotPassword';
@@ -7,7 +7,7 @@ import { EmailVerification } from './components/EmailVerification';
 import { OTPVerification } from './components/OTPVerification';
 import { ToastProvider } from './components/ToastProvider';
 import { TenantProvider, useTenant } from './contexts/TenantContext';
-import { AuthProvider } from './contexts/AuthContext';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { 
   TenantHomePage, 
   ActualitesPage, 
@@ -26,16 +26,52 @@ import {
 } from './pages';
 
 // CMS Components
-import { MayorDashboard } from '../cms_components/MayorDashboard';
-import { DashboardContent } from '../cms_components/DashboardContent';
-import MayorSchedule from '../cms_components/Evenement';
-import { Publications } from '../cms_components/Publications';
-import { Parametres } from '../cms_components/Parametres';
-import SiteWebEditor from '../cms_components/SiteWebEditor';
+import { MayorDashboard } from './cms_components/MayorDashboard';
+import { DashboardContent } from './cms_components/DashboardContent';
+import MayorSchedule from './cms_components/Evenement';
+import { Publications } from './cms_components/Publications';
+import { Parametres } from './cms_components/Parametres';
+import SiteWebEditor from './cms_components/SiteWebEditor';
+
+// Protected Route Component for CMS
+interface ProtectedRouteProps {
+  children: React.ReactNode;
+}
+
+function ProtectedRoute({ children }: ProtectedRouteProps) {
+  const { isAuthenticated, isLoading } = useAuth();
+  const location = useLocation();
+  
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-500">Vérification de l'authentification...</p>
+        </div>
+      </div>
+    );
+  }
+  
+  if (!isAuthenticated) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+  
+  return <>{children}</>;
+}
 
 // Wrapper component for Login with navigation
 function LoginPage() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { isAuthenticated } = useAuth();
+  
+  // Redirect to CMS if already authenticated
+  if (isAuthenticated) {
+    const from = (location.state as { from?: { pathname: string } })?.from?.pathname || '/cms/mayor-dashboard';
+    return <Navigate to={from} replace />;
+  }
+  
   return (
     <Login 
       onForgotPassword={() => navigate('/forgot-password')}
@@ -97,7 +133,7 @@ function EmailVerificationPage() {
  * - Si sous-domaine (ex: yaounde.ecms.cm) → routes du site communal
  * - Sinon (ex: ecms.cm) → portail national (landing page)
  */
-function AppRoutes() {
+function TenantRoutes() {
   const { isTenantSite, isLoading } = useTenant();
   
   // Afficher un loader pendant le chargement initial du tenant
@@ -148,6 +184,19 @@ function AppRoutes() {
         {/* Pages CMS dynamiques */}
         <Route path="/pages/:slug" element={<PageCMSPage />} />
         
+        {/* CMS Admin Routes (Protected) */}
+        <Route path="/cms/mayor-dashboard" element={
+          <ProtectedRoute>
+            <MayorDashboard />
+          </ProtectedRoute>
+        }>
+          <Route index element={<DashboardContent />} />
+          <Route path="publications" element={<Publications />} />
+          <Route path="evenements" element={<MayorSchedule />} />
+          <Route path="site-web" element={<SiteWebEditor />} />
+          <Route path="parametres" element={<Parametres />} />
+        </Route>
+        
         {/* Auth (partagé) */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
@@ -161,21 +210,8 @@ function AppRoutes() {
     );
   }
   
-  // Routes pour le portail national
-  return (
-    <Routes>
-      <Route path="/" element={<LandingPage />} />
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-      <Route path="/verify-otp" element={<OTPVerificationPage />} />
-      <Route path="/reset-password" element={<ResetPasswordPage />} />
-      <Route path="/verify-email" element={<EmailVerificationPage />} />
-      <Route path="/contact" element={<LandingPage />} />
-      <Route path="/features" element={<LandingPage />} />
-      {/* Fallback route */}
-      <Route path="*" element={<LandingPage />} />
-    </Routes>
-  );
+  // Pas un tenant - retourne null pour laisser les routes principales gérer
+  return null;
 }
 
 const App: React.FC = () => {
@@ -184,54 +220,69 @@ const App: React.FC = () => {
       <Router>
         <AuthProvider>
           <TenantProvider>
-            <Routes>
-              {/* Landing Page */}
-              <Route path="/" element={<LandingPage />} />
-              
-              {/* Auth Routes */}
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-              <Route path="/verify-otp" element={<OTPVerificationPage />} />
-              <Route path="/reset-password" element={<ResetPasswordPage />} />
-              <Route path="/verify-email" element={<EmailVerificationPage />} />
-              <Route path="/contact" element={<LandingPage />} />
-              <Route path="/features" element={<LandingPage />} />
-              
-              {/* CMS Routes - Mayor Dashboard */}
-              <Route path="/cms/mayor-dashboard" element={<MayorDashboard />}>
-                <Route index element={<DashboardContent />} />
-                <Route path="publications" element={<Publications />} />
-                <Route path="evenements" element={<MayorSchedule />} />
-                <Route path="site-web" element={<SiteWebEditor />} />
-                <Route path="parametres" element={<Parametres />} />
-              </Route>
-
-              {/* Tenant Routes */}
-              <Route path="/tenant" element={<TenantHomePage />} />
-              <Route path="/actualites" element={<ActualitesPage />} />
-              <Route path="/actualites/:slug" element={<ActualiteDetailPage />} />
-              <Route path="/evenements" element={<EvenementsPage />} />
-              <Route path="/agenda" element={<EvenementsPage />} />
-              <Route path="/projets" element={<ProjetsPage />} />
-              <Route path="/projets/:slug" element={<ProjetDetailPage />} />
-              <Route path="/transparence" element={<TransparencePage />} />
-              <Route path="/documents" element={<TransparencePage />} />
-              <Route path="/services" element={<ServicesPage />} />
-              <Route path="/suivi-demarche" element={<SuiviDemarchePage />} />
-              <Route path="/signalement" element={<SignalementPage />} />
-              <Route path="/suivi-signalement" element={<SuiviSignalementPage />} />
-              <Route path="/contact-tenant" element={<ContactPage />} />
-              <Route path="/faq" element={<FAQPage />} />
-              <Route path="/pages/:slug" element={<PageCMSPage />} />
-
-              {/* Fallback route */}
-              <Route path="*" element={<LandingPage />} />
-            </Routes>
+            <AppContent />
           </TenantProvider>
         </AuthProvider>
       </Router>
     </ToastProvider>
   );
 };
+
+/**
+ * Contenu principal de l'application
+ * Gère le routage conditionnel basé sur le tenant
+ */
+function AppContent() {
+  const { isTenantSite, isLoading: tenantLoading } = useTenant();
+  
+  // Si on est sur un tenant, utiliser TenantRoutes
+  if (tenantLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-500">Chargement...</p>
+        </div>
+      </div>
+    );
+  }
+  
+  if (isTenantSite) {
+    return <TenantRoutes />;
+  }
+  
+  // Routes pour le portail national (sans tenant)
+  return (
+    <Routes>
+      {/* Landing Page */}
+      <Route path="/" element={<LandingPage />} />
+      
+      {/* Auth Routes */}
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+      <Route path="/verify-otp" element={<OTPVerificationPage />} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
+      <Route path="/verify-email" element={<EmailVerificationPage />} />
+      <Route path="/contact" element={<LandingPage />} />
+      <Route path="/features" element={<LandingPage />} />
+      
+      {/* CMS Routes - Mayor Dashboard (Protected) */}
+      <Route path="/cms/mayor-dashboard" element={
+        <ProtectedRoute>
+          <MayorDashboard />
+        </ProtectedRoute>
+      }>
+        <Route index element={<DashboardContent />} />
+        <Route path="publications" element={<Publications />} />
+        <Route path="evenements" element={<MayorSchedule />} />
+        <Route path="site-web" element={<SiteWebEditor />} />
+        <Route path="parametres" element={<Parametres />} />
+      </Route>
+
+      {/* Fallback route */}
+      <Route path="*" element={<LandingPage />} />
+    </Routes>
+  );
+}
 
 export default App;

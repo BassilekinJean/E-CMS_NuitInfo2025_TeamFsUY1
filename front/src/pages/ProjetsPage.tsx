@@ -3,9 +3,9 @@
  */
 
 
-import { Link, useParams } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useTenant } from '../contexts/TenantContext';
-import { useProjets, useProjet } from '../hooks/useApi';
+import { useProjets } from '../hooks/useApi';
 import { ArrowLeft, Calendar, MapPin, TrendingUp, Wallet } from 'lucide-react';
 
 export function ProjetsPage() {

@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { AlertTriangle, MapPin, Camera, Send, CheckCircle, Loader2 } from 'lucide-react';
+import { AlertTriangle, MapPin, Send, CheckCircle, Loader2 } from 'lucide-react';
 import { useTenant } from '../contexts/TenantContext';
-import api from '../api/client';
+import { signalementService } from '../api/services';
 import { Link } from 'react-router-dom';
 
 type SignalementFormData = {
@@ -26,7 +26,7 @@ export function SignalementPage() {
     
     try {
       setSubmitStatus('idle');
-      const response = await api.signalements.create({
+      const response = await signalementService.create({
         ...data,
         commune: tenant.id
       });

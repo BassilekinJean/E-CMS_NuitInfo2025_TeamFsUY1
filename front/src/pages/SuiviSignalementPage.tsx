@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Search, AlertTriangle, CheckCircle, Clock, ArrowRight, Loader2, MapPin } from 'lucide-react';
 import { useTenant } from '../contexts/TenantContext';
-import api from '../api/client';
+import { signalementService } from '../api/services';
 import { Link } from 'react-router-dom';
 
 type SuiviFormData = {
@@ -33,8 +33,8 @@ export function SuiviSignalementPage() {
     try {
       setError(null);
       setResult(null);
-      const response = await api.signalements.suivi(data.numero);
-      setResult(response);
+      const response = await signalementService.suivi(data.numero);
+      setResult(response as SignalementResult);
     } catch (err: any) {
       console.error(err);
       setError(err.message || "Impossible de trouver ce signalement. Vérifiez le numéro.");

@@ -15,28 +15,20 @@ import {
   List,
   Menu,
   Loader2,
-  Check
+  Check,
+  RefreshCw,
+  AlertCircle
 } from 'lucide-react';
 import { useOutletContext } from 'react-router-dom';
+import { useEvents, type CMSEvent } from '../hooks/useCMSData';
+import { useTenant } from '../contexts/TenantContext';
 
 interface DashboardContextType {
   setIsSidebarOpen: (isOpen: boolean) => void;
 }
 
-// Types
-interface Event {
-  id: string;
-  title: string;
-  description: string;
-  date: string;
-  startTime: string;
-  endTime: string;
-  location: string;
-  category: string;
-  priority: 'low' | 'medium' | 'high';
-  status: 'pending' | 'confirmed' | 'cancelled';
-  attendees?: number;
-}
+// Types - Utilisation des types du hook
+type Event = CMSEvent;
 
 interface EventFormData {
   title: string;
@@ -427,36 +419,23 @@ const CalendarView = ({
 // Main Component
 const MayorSchedule = () => {
   const { setIsSidebarOpen } = useOutletContext<DashboardContextType>();
+  const { tenantSlug } = useTenant();
+  const { 
+    events, 
+    loading, 
+    error: apiError,
+    refresh,
+    createEvent,
+    updateEvent,
+    deleteEvent
+  } = useEvents();
+  
   const [viewMode, setViewMode] = useState<'calendar' | 'list'>('list');
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [events, setEvents] = useState<Event[]>([]);
-  const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState<string>('all');
-
-  // Charger les événements depuis le backend
-  useEffect(() => {
-    const fetchEvents = async () => {
-      setLoading(true);
-      try {
-        // TODO: Remplacer par l'appel API réel
-        // const response = await fetch('/api/events');
-        // const data = await response.json();
-        // setEvents(data);
-        
-        await new Promise(resolve => setTimeout(resolve, 500));
-        setEvents([]);
-      } catch (error) {
-        console.error('Erreur chargement événements:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchEvents();
-  }, []);
 
   // Filtrer les événements
   const filteredEvents = useMemo(() => {
@@ -475,46 +454,76 @@ const MayorSchedule = () => {
   };
 
   const handleCreateEvent = async (data: EventFormData) => {
-    // TODO: Appel API pour créer l'événement
-    // const response = await fetch('/api/events', { method: 'POST', body: JSON.stringify(data) });
-    // const newEvent = await response.json();
-    
-    const newEvent: Event = {
-      id: Date.now().toString(),
-      ...data,
-      status: 'pending',
-    };
-    
-    setEvents([...events, newEvent]);
-    setShowModal(false);
+    try {
+      await createEvent({
+        title: data.title,
+        description: data.description,
+        date: data.date,
+        startTime: data.startTime,
+        endTime: data.endTime,
+        location: data.location,
+        category: data.category,
+        priority: data.priority,
+      });
+      setShowModal(false);
+    } catch (error) {
+      console.error('Erreur lors de la création:', error);
+      alert('Erreur lors de la création de l\'événement');
+    }
   };
 
   const handleUpdateEvent = async (data: EventFormData) => {
     if (!editingEvent) return;
     
-    // TODO: Appel API pour mettre à jour
-    // await fetch(`/api/events/${editingEvent.id}`, { method: 'PUT', body: JSON.stringify(data) });
-    
-    setEvents(events.map(e => 
-      e.id === editingEvent.id ? { ...e, ...data } : e
-    ));
-    setEditingEvent(null);
-    setShowModal(false);
+    try {
+      await updateEvent(editingEvent.slug, {
+        title: data.title,
+        description: data.description,
+        date: data.date,
+        startTime: data.startTime,
+        endTime: data.endTime,
+        location: data.location,
+        category: data.category,
+        priority: data.priority,
+      });
+      setEditingEvent(null);
+      setShowModal(false);
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour:', error);
+      alert('Erreur lors de la mise à jour de l\'événement');
+    }
   };
 
-  const handleDeleteEvent = async (id: string) => {
+  const handleDeleteEvent = async (slug: string) => {
     if (!confirm('Êtes-vous sûr de vouloir supprimer cet événement ?')) return;
     
-    // TODO: Appel API pour supprimer
-    // await fetch(`/api/events/${id}`, { method: 'DELETE' });
-    
-    setEvents(events.filter(e => e.id !== id));
+    try {
+      await deleteEvent(slug);
+    } catch (error) {
+      console.error('Erreur lors de la suppression:', error);
+      alert('Erreur lors de la suppression de l\'événement');
+    }
   };
 
   const openEditModal = (event: Event) => {
     setEditingEvent(event);
     setShowModal(true);
   };
+
+  // Affichage si pas de tenant
+  if (!tenantSlug) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20 flex items-center justify-center">
+        <div className="text-center p-8 bg-white rounded-3xl shadow-lg max-w-md mx-4">
+          <AlertCircle className="w-16 h-16 mx-auto text-amber-500 mb-4" />
+          <h2 className="text-xl font-bold text-slate-800 mb-2">Commune non détectée</h2>
+          <p className="text-slate-500">
+            Veuillez accéder au CMS via un sous-domaine de commune (ex: yaounde.localhost:5173)
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20">
@@ -632,6 +641,19 @@ const MayorSchedule = () => {
             <Loader2 className="w-10 h-10 text-blue-500 animate-spin" />
             <p className="mt-4 text-slate-500">Chargement des événements...</p>
           </div>
+        ) : apiError ? (
+          <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-12 text-center border border-slate-100">
+            <AlertCircle className="w-16 h-16 mx-auto text-red-400 mb-4" />
+            <h3 className="text-lg font-semibold text-slate-800 mb-2">Erreur de chargement</h3>
+            <p className="text-slate-500 mb-6">{apiError}</p>
+            <button
+              onClick={refresh}
+              className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-xl font-medium shadow-lg shadow-blue-500/25 hover:shadow-xl transition-all"
+            >
+              <RefreshCw className="w-5 h-5" />
+              Réessayer
+            </button>
+          </div>
         ) : viewMode === 'calendar' ? (
           <CalendarView
             events={filteredEvents}
@@ -648,10 +670,10 @@ const MayorSchedule = () => {
             {filteredEvents.length > 0 ? (
               filteredEvents.map(event => (
                 <EventCard
-                  key={event.id}
+                  key={event.slug || event.id}
                   event={event}
                   onEdit={() => openEditModal(event)}
-                  onDelete={() => handleDeleteEvent(event.id)}
+                  onDelete={() => handleDeleteEvent(event.slug)}
                 />
               ))
             ) : (

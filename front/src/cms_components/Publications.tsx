@@ -17,30 +17,20 @@ import {
   Upload,
   Calendar,
   User,
-  Clock
+  Clock,
+  RefreshCw,
+  AlertCircle
 } from 'lucide-react';
 import { useOutletContext } from 'react-router-dom';
+import { usePublications, type CMSPublication } from '../hooks/useCMSData';
+import { useTenant } from '../contexts/TenantContext';
 
 interface DashboardContextType {
   setIsSidebarOpen: (isOpen: boolean) => void;
 }
 
-// Types
-interface Publication {
-  id: string;
-  type: 'post' | 'communique';
-  title: string;
-  content: string;
-  category: string;
-  status: 'draft' | 'published';
-  author: string;
-  createdAt: string;
-  publishedAt?: string;
-  image?: string;
-  views: number;
-  likes: number;
-  comments: number;
-}
+// Types - Utilisation des types du hook
+type Publication = CMSPublication;
 
 interface PublicationFormData {
   type: 'post' | 'communique';
@@ -428,35 +418,22 @@ const PublicationModal = ({
 // Main Component
 export const Publications = () => {
   const { setIsSidebarOpen } = useOutletContext<DashboardContextType>();
-  const [publications, setPublications] = useState<Publication[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { tenantSlug } = useTenant();
+  const { 
+    publications, 
+    loading, 
+    error: apiError,
+    refresh,
+    createPublication,
+    updatePublication,
+    deletePublication
+  } = usePublications();
+  
   const [showModal, setShowModal] = useState(false);
   const [editingPublication, setEditingPublication] = useState<Publication | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
-
-  // Charger les publications depuis le backend
-  useEffect(() => {
-    const fetchPublications = async () => {
-      setLoading(true);
-      try {
-        // TODO: Remplacer par l'appel API réel
-        // const response = await fetch('/api/publications');
-        // const data = await response.json();
-        // setPublications(data);
-        
-        await new Promise(resolve => setTimeout(resolve, 500));
-        setPublications([]);
-      } catch (error) {
-        console.error('Erreur chargement publications:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchPublications();
-  }, []);
 
   // Filtrer les publications
   const filteredPublications = publications.filter(pub => {
@@ -468,41 +445,72 @@ export const Publications = () => {
   });
 
   const handleCreatePublication = async (data: PublicationFormData) => {
-    // TODO: Appel API pour créer
-    const newPub: Publication = {
-      id: Date.now().toString(),
-      ...data,
-      author: 'Maire',
-      createdAt: new Date().toISOString(),
-      publishedAt: data.status === 'published' ? new Date().toISOString() : undefined,
-      views: 0,
-      likes: 0,
-      comments: 0,
-    };
-    
-    setPublications([newPub, ...publications]);
-    setShowModal(false);
+    try {
+      await createPublication({
+        type: data.type,
+        title: data.title,
+        content: data.content,
+        category: data.category,
+        status: data.status,
+        image: data.image,
+      });
+      setShowModal(false);
+    } catch (error) {
+      console.error('Erreur lors de la création:', error);
+      alert('Erreur lors de la création de la publication');
+    }
   };
 
   const handleUpdatePublication = async (data: PublicationFormData) => {
     if (!editingPublication) return;
     
-    setPublications(publications.map(p => 
-      p.id === editingPublication.id ? { ...p, ...data } : p
-    ));
-    setEditingPublication(null);
-    setShowModal(false);
+    try {
+      await updatePublication(editingPublication.slug, {
+        type: data.type,
+        title: data.title,
+        content: data.content,
+        category: data.category,
+        status: data.status,
+        image: data.image,
+      });
+      setEditingPublication(null);
+      setShowModal(false);
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour:', error);
+      alert('Erreur lors de la mise à jour de la publication');
+    }
   };
 
-  const handleDeletePublication = async (id: string) => {
+  const handleDeletePublication = async (slug: string) => {
     if (!confirm('Êtes-vous sûr de vouloir supprimer cette publication ?')) return;
-    setPublications(publications.filter(p => p.id !== id));
+    
+    try {
+      await deletePublication(slug);
+    } catch (error) {
+      console.error('Erreur lors de la suppression:', error);
+      alert('Erreur lors de la suppression de la publication');
+    }
   };
 
   const openEditModal = (pub: Publication) => {
     setEditingPublication(pub);
     setShowModal(true);
   };
+
+  // Affichage si pas de tenant
+  if (!tenantSlug) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20 flex items-center justify-center">
+        <div className="text-center p-8 bg-white rounded-3xl shadow-lg max-w-md mx-4">
+          <AlertCircle className="w-16 h-16 mx-auto text-amber-500 mb-4" />
+          <h2 className="text-xl font-bold text-slate-800 mb-2">Commune non détectée</h2>
+          <p className="text-slate-500">
+            Veuillez accéder au CMS via un sous-domaine de commune (ex: yaounde.localhost:5173)
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20">
@@ -586,14 +594,27 @@ export const Publications = () => {
             <Loader2 className="w-10 h-10 text-blue-500 animate-spin" />
             <p className="mt-4 text-slate-500">Chargement des publications...</p>
           </div>
+        ) : apiError ? (
+          <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-12 text-center border border-slate-100">
+            <AlertCircle className="w-16 h-16 mx-auto text-red-400 mb-4" />
+            <h3 className="text-lg font-semibold text-slate-800 mb-2">Erreur de chargement</h3>
+            <p className="text-slate-500 mb-6">{apiError}</p>
+            <button
+              onClick={refresh}
+              className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-xl font-medium shadow-lg shadow-blue-500/25 hover:shadow-xl transition-all"
+            >
+              <RefreshCw className="w-5 h-5" />
+              Réessayer
+            </button>
+          </div>
         ) : filteredPublications.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
             {filteredPublications.map(pub => (
               <PublicationCard
-                key={pub.id}
+                key={pub.slug || pub.id}
                 publication={pub}
                 onEdit={() => openEditModal(pub)}
-                onDelete={() => handleDeletePublication(pub.id)}
+                onDelete={() => handleDeletePublication(pub.slug)}
                 onView={() => {}}
               />
             ))}

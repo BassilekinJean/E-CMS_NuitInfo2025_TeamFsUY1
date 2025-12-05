@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { Search, FileText, CheckCircle, Clock, XCircle, AlertCircle, Loader2, ArrowRight } from 'lucide-react';
+import { Search, CheckCircle, AlertCircle, Loader2, ArrowRight } from 'lucide-react';
 import { useTenant } from '../contexts/TenantContext';
 import api from '../api/client';
 import { Link } from 'react-router-dom';

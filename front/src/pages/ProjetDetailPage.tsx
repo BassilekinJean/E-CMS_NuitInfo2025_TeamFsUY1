@@ -2,7 +2,6 @@
  * Page Détail Projet - E-CMS
  */
 
-import React from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useTenant } from '../contexts/TenantContext';
 import { useProjet } from '../hooks/useApi';

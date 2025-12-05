@@ -3,11 +3,11 @@
  * Délibérations, Budgets et Documents officiels
  */
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTenant } from '../contexts/TenantContext';
 import { useDeliberations, useBudgets, useDocumentsOfficiels } from '../hooks/useApi';
-import { ArrowLeft, FileText, Download, Search, Filter, Calendar } from 'lucide-react';
+import { ArrowLeft, FileText, Download, Search, Calendar } from 'lucide-react';
 
 type Tab = 'deliberations' | 'budgets' | 'documents';
 
@@ -267,7 +267,6 @@ function BudgetsTab() {
 }
 
 function DocumentsTab() {
-  const { tenant } = useTenant();
   const [search, setSearch] = useState('');
   const { data: documents, isLoading } = useDocumentsOfficiels({ search: search || undefined });
   

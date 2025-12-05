@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { MapPin, Phone, Mail, Send, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 import { useTenant } from '../contexts/TenantContext';
-import api from '../api/client';
+import { contactService } from '../api/services';
 import { Link } from 'react-router-dom';
 
 type ContactFormData = {
@@ -26,7 +26,7 @@ export function ContactPage() {
       setSubmitStatus('idle');
       setErrorMessage(null);
       
-      await api.contact.envoyer({
+      await contactService.envoyer({
         ...data,
         commune: tenant.id
       });

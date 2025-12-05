@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Mail, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
-import api from '../api/client';
+import { newsletterService } from '../api/services';
 import { useTenant } from '../contexts/TenantContext';
 
 type NewsletterFormData = {
@@ -20,7 +20,7 @@ export function NewsletterSubscribe() {
     
     try {
       setStatus('idle');
-      await api.newsletter.subscribe({
+      await newsletterService.subscribe({
         ...data,
         commune: tenant.id
       });
