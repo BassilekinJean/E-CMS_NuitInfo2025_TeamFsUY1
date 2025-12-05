@@ -1,9 +1,5 @@
 import { useState } from 'react';
-<<<<<<< HEAD
-import { Mail, Phone, MapPin, Send, CheckCircle, AlertCircle, Clock, MessageCircle, Loader2 } from 'lucide-react';
-=======
 import { Mail, Phone, MapPin, Send, CheckCircle, AlertCircle, Clock, MessageCircle, Loader2, Users, Award, TrendingUp, Star, ChevronDown } from 'lucide-react';
->>>>>>> origin/front
 
 interface FormErrors {
   mairie?: string;
@@ -29,10 +25,7 @@ export function ContactDemo() {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
   const [touched, setTouched] = useState<{[key: string]: boolean}>({});
-<<<<<<< HEAD
-=======
   const [openFaq, setOpenFaq] = useState<number | null>(null);
->>>>>>> origin/front
 
   const validateEmail = (email: string) => {
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -58,11 +51,7 @@ export function ContactDemo() {
     }
 
     if (!formData.email.trim()) {
-<<<<<<< HEAD
-      newErrors.email = 'L\'email est requis';
-=======
       newErrors.email = "L'email est requis";
->>>>>>> origin/front
     } else if (!validateEmail(formData.email)) {
       newErrors.email = 'Email invalide';
     }
@@ -89,21 +78,10 @@ export function ContactDemo() {
     }
 
     setLoading(true);
-<<<<<<< HEAD
-    
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    setLoading(false);
-    setSubmitted(true);
-    
-    // Reset form after 5 seconds
-=======
     await new Promise(resolve => setTimeout(resolve, 2000));
     setLoading(false);
     setSubmitted(true);
     
->>>>>>> origin/front
     setTimeout(() => {
       setSubmitted(false);
       setFormData({
@@ -124,36 +102,14 @@ export function ContactDemo() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-<<<<<<< HEAD
-    setFormData({
-      ...formData,
-      [name]: value
-    });
-
-    // Clear error when user starts typing
-    if (errors[name as keyof FormErrors]) {
-      setErrors({
-        ...errors,
-        [name]: undefined
-      });
-=======
     setFormData({ ...formData, [name]: value });
 
     if (errors[name as keyof FormErrors]) {
       setErrors({ ...errors, [name]: undefined });
->>>>>>> origin/front
     }
   };
 
   const handleBlur = (field: string) => {
-<<<<<<< HEAD
-    setTouched({
-      ...touched,
-      [field]: true
-    });
-  };
-
-=======
     setTouched({ ...touched, [field]: true });
   };
 
@@ -185,7 +141,6 @@ export function ContactDemo() {
     }
   ];
 
->>>>>>> origin/front
   const faqs = [
     {
       question: 'Combien de temps faut-il pour créer un site?',
@@ -202,78 +157,14 @@ export function ContactDemo() {
     {
       question: 'Quel est le coût mensuel?',
       answer: 'Nos tarifs varient selon la taille de votre commune. Contactez-nous pour un devis personnalisé.'
-<<<<<<< HEAD
-=======
     },
     {
       question: 'Les données sont-elles sécurisées?',
       answer: 'Nous utilisons un cryptage SSL 256-bit et des sauvegardes automatiques quotidiennes.'
->>>>>>> origin/front
     }
   ];
 
   return (
-<<<<<<< HEAD
-    <div id="contact" className="py-20 bg-gradient-to-b from-white to-green-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
-          <div className="inline-block bg-green-100 text-green-700 px-4 py-2 rounded-full mb-4">
-            Contactez-nous
-          </div>
-          <h2 className="text-gray-900 mb-4">
-            Demandez votre Démo Gratuite
-          </h2>
-          <p className="text-gray-600 max-w-3xl mx-auto">
-            Découvrez comment CameroonCMS peut transformer la présence en ligne de votre mairie. 
-            Remplissez le formulaire et nous vous contacterons dans les 24 heures.
-          </p>
-        </div>
-
-        <div className="grid lg:grid-cols-3 gap-8 mb-12">
-          {/* Contact Methods */}
-          <div className="bg-white p-6 rounded-xl shadow-lg border border-green-100 hover:shadow-xl transition-shadow">
-            <div className="bg-green-100 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
-              <Phone className="h-6 w-6 text-green-600" />
-            </div>
-            <h3 className="text-gray-900 mb-2">Téléphone</h3>
-            <p className="text-gray-600 mb-3">Lun - Ven: 8h00 - 17h00</p>
-            <a href="tel:+237XXXXXXXXX" className="text-green-600 hover:text-green-700">
-              +237 XXX XXX XXX
-            </a>
-            <div className="mt-3">
-              <a href="tel:+237YYYYYYYYY" className="text-green-600 hover:text-green-700">
-                +237 YYY YYY YYY
-              </a>
-            </div>
-          </div>
-
-          <div className="bg-white p-6 rounded-xl shadow-lg border border-green-100 hover:shadow-xl transition-shadow">
-            <div className="bg-green-100 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
-              <Mail className="h-6 w-6 text-green-600" />
-            </div>
-            <h3 className="text-gray-900 mb-2">Email</h3>
-            <p className="text-gray-600 mb-3">Réponse sous 24h</p>
-            <a href="mailto:contact@camerooncms.cm" className="text-green-600 hover:text-green-700 block">
-              contact@camerooncms.cm
-            </a>
-            <div className="mt-3">
-              <a href="mailto:demo@camerooncms.cm" className="text-green-600 hover:text-green-700 block">
-                demo@camerooncms.cm
-              </a>
-            </div>
-          </div>
-
-          <div className="bg-white p-6 rounded-xl shadow-lg border border-green-100 hover:shadow-xl transition-shadow">
-            <div className="bg-green-100 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
-              <MessageCircle className="h-6 w-6 text-green-600" />
-            </div>
-            <h3 className="text-gray-900 mb-2">WhatsApp</h3>
-            <p className="text-gray-600 mb-3">Chat en direct</p>
-            <a href="https://wa.me/237XXXXXXXXX" target="_blank" rel="noopener noreferrer" className="text-green-600 hover:text-green-700 block">
-              +237 XXX XXX XXX
-            </a>
-            <p className="text-gray-500 mt-3">Disponible 24/7</p>
-=======
     <div id="contact" className="py-20 bg-gradient-to-b from-white via-green-50/30 to-white relative overflow-hidden">
       <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-green-200/20 to-yellow-200/20 rounded-full blur-3xl"></div>
       <div className="absolute bottom-0 left-0 w-96 h-96 bg-gradient-to-tr from-yellow-200/20 to-green-200/20 rounded-full blur-3xl"></div>
@@ -341,38 +232,10 @@ export function ContactDemo() {
               <span className="w-2 h-2 bg-green-300 rounded-full animate-pulse"></span>
               Disponible 24/7
             </p>
->>>>>>> origin/front
           </div>
         </div>
 
         <div className="grid lg:grid-cols-2 gap-12">
-<<<<<<< HEAD
-          {/* Contact Info */}
-          <div className="space-y-8">
-            <div className="bg-white p-8 rounded-2xl shadow-lg border border-green-100">
-              <div className="flex items-start gap-4 mb-6">
-                <div className="bg-green-100 p-3 rounded-lg">
-                  <MapPin className="h-6 w-6 text-green-600" />
-                </div>
-                <div>
-                  <h3 className="text-gray-900 mb-2">Notre Bureau</h3>
-                  <p className="text-gray-600">Quartier Bastos</p>
-                  <p className="text-gray-600">Yaoundé, Cameroun</p>
-                  <p className="text-gray-600 mt-2">BP: 12345 Yaoundé</p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-4 mb-6">
-                <div className="bg-green-100 p-3 rounded-lg">
-                  <Clock className="h-6 w-6 text-green-600" />
-                </div>
-                <div>
-                  <h3 className="text-gray-900 mb-2">Horaires d'ouverture</h3>
-                  <div className="space-y-1 text-gray-600">
-                    <p>Lundi - Vendredi: 8h00 - 17h00</p>
-                    <p>Samedi: 9h00 - 13h00</p>
-                    <p>Dimanche: Fermé</p>
-=======
           <div className="space-y-8">
             <div className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
               <div className="h-48 bg-gradient-to-br from-green-600 to-yellow-500 relative overflow-hidden">
@@ -405,58 +268,11 @@ export function ContactDemo() {
                     <h4 className="font-semibold text-gray-900 mb-2">Horaires</h4>
                     <p className="text-gray-600">Lun - Ven: <span className="text-green-600 font-medium">8h00 - 17h00</span></p>
                     <p className="text-gray-600">Sam: <span className="text-green-600 font-medium">9h00 - 13h00</span></p>
->>>>>>> origin/front
                   </div>
                 </div>
               </div>
             </div>
 
-<<<<<<< HEAD
-            <div className="bg-gradient-to-br from-green-600 to-yellow-500 p-8 rounded-2xl text-white">
-              <h3 className="text-white mb-4">Pourquoi choisir CameroonCMS?</h3>
-              <ul className="space-y-3">
-                <li className="flex items-start gap-3">
-                  <CheckCircle className="h-5 w-5 mt-0.5 flex-shrink-0" />
-                  <span>Solution 100% camerounaise, adaptée aux réalités locales</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <CheckCircle className="h-5 w-5 mt-0.5 flex-shrink-0" />
-                  <span>Support technique en français et en anglais</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <CheckCircle className="h-5 w-5 mt-0.5 flex-shrink-0" />
-                  <span>Tarifs adaptés aux budgets municipaux</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <CheckCircle className="h-5 w-5 mt-0.5 flex-shrink-0" />
-                  <span>Formation complète de vos équipes incluse</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <CheckCircle className="h-5 w-5 mt-0.5 flex-shrink-0" />
-                  <span>Hébergement sécurisé et sauvegardes automatiques</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <CheckCircle className="h-5 w-5 mt-0.5 flex-shrink-0" />
-                  <span>Mise à jour et maintenance incluses</span>
-                </li>
-              </ul>
-            </div>
-
-            {/* FAQ Section */}
-            <div className="bg-white p-8 rounded-2xl shadow-lg border border-green-100">
-              <h3 className="text-gray-900 mb-6">Questions Fréquentes</h3>
-              <div className="space-y-4">
-                {faqs.map((faq, index) => (
-                  <details key={index} className="group">
-                    <summary className="cursor-pointer list-none flex items-center justify-between text-gray-900 hover:text-green-600 transition-colors">
-                      <span>{faq.question}</span>
-                      <span className="ml-2 text-green-600 group-open:rotate-180 transition-transform">▼</span>
-                    </summary>
-                    <p className="mt-3 text-gray-600 pl-4 border-l-2 border-green-200">
-                      {faq.answer}
-                    </p>
-                  </details>
-=======
             <div className="bg-gradient-to-br from-green-600 to-yellow-500 p-8 rounded-3xl text-white shadow-xl relative overflow-hidden">
               <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2"></div>
               <div className="relative z-10">
@@ -508,28 +324,11 @@ export function ContactDemo() {
                       </div>
                     )}
                   </div>
->>>>>>> origin/front
                 ))}
               </div>
             </div>
           </div>
 
-<<<<<<< HEAD
-          {/* Contact Form */}
-          <div className="bg-white p-8 rounded-2xl shadow-xl border border-green-100">
-            {submitted ? (
-              <div className="text-center py-12">
-                <div className="bg-green-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 animate-bounce">
-                  <CheckCircle className="h-10 w-10 text-green-600" />
-                </div>
-                <h3 className="text-gray-900 mb-3">Demande envoyée avec succès!</h3>
-                <p className="text-gray-600 mb-4">
-                  Merci pour votre intérêt! Notre équipe vous contactera dans les 24 heures.
-                </p>
-                <p className="text-gray-500">
-                  Vous recevrez un email de confirmation à l'adresse fournie.
-                </p>
-=======
           <div className="bg-white p-8 rounded-3xl shadow-2xl border border-gray-100 sticky top-24 h-fit">
             {submitted ? (
               <div className="text-center py-12">
@@ -544,29 +343,18 @@ export function ContactDemo() {
                     Email de confirmation envoyé
                   </p>
                 </div>
->>>>>>> origin/front
               </div>
             ) : (
               <>
                 <div className="mb-6">
-<<<<<<< HEAD
-                  <h3 className="text-gray-900 mb-2">Demande de Démo</h3>
-                  <p className="text-gray-600">Tous les champs avec * sont obligatoires</p>
-=======
                   <h3 className="text-xl font-bold text-gray-900 mb-2">Demande de Démo</h3>
                   <p className="text-gray-600">Champs avec <span className="text-red-500">*</span> obligatoires</p>
->>>>>>> origin/front
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-5">
                   <div>
-<<<<<<< HEAD
-                    <label htmlFor="mairie" className="block text-gray-700 mb-2">
-                      Nom de la Mairie *
-=======
                     <label htmlFor="mairie" className="block text-gray-700 font-medium mb-2">
                       Nom de la Mairie <span className="text-red-500">*</span>
->>>>>>> origin/front
                     </label>
                     <input
                       type="text"
@@ -576,21 +364,11 @@ export function ContactDemo() {
                       value={formData.mairie}
                       onChange={handleChange}
                       onBlur={() => handleBlur('mairie')}
-<<<<<<< HEAD
-                      className={`w-full px-4 py-3 border ${
-                        errors.mairie && touched.mairie ? 'border-red-500' : 'border-gray-300'
-                      } rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all`}
-                      placeholder="Ex: Mairie de Douala 3ème"
-                    />
-                    {errors.mairie && touched.mairie && (
-                      <div className="flex items-center gap-1 mt-1 text-red-600">
-=======
                       className={`w-full px-4 py-3 border ${errors.mairie && touched.mairie ? 'border-red-500 bg-red-50' : 'border-gray-300 bg-gray-50'} rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent focus:bg-white outline-none transition-all`}
                       placeholder="Ex: Mairie de Douala 3ème"
                     />
                     {errors.mairie && touched.mairie && (
                       <div className="flex items-center gap-1 mt-2 text-red-600">
->>>>>>> origin/front
                         <AlertCircle className="h-4 w-4" />
                         <span className="text-sm">{errors.mairie}</span>
                       </div>
@@ -599,55 +377,6 @@ export function ContactDemo() {
 
                   <div className="grid md:grid-cols-2 gap-4">
                     <div>
-<<<<<<< HEAD
-                      <label htmlFor="nom" className="block text-gray-700 mb-2">
-                        Nom Complet *
-                      </label>
-                      <input
-                        type="text"
-                        id="nom"
-                        name="nom"
-                        required
-                        value={formData.nom}
-                        onChange={handleChange}
-                        onBlur={() => handleBlur('nom')}
-                        className={`w-full px-4 py-3 border ${
-                          errors.nom && touched.nom ? 'border-red-500' : 'border-gray-300'
-                        } rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all`}
-                        placeholder="Jean Dupont"
-                      />
-                      {errors.nom && touched.nom && (
-                        <div className="flex items-center gap-1 mt-1 text-red-600">
-                          <AlertCircle className="h-4 w-4" />
-                          <span className="text-sm">{errors.nom}</span>
-                        </div>
-                      )}
-                    </div>
-
-                    <div>
-                      <label htmlFor="poste" className="block text-gray-700 mb-2">
-                        Poste / Fonction *
-                      </label>
-                      <input
-                        type="text"
-                        id="poste"
-                        name="poste"
-                        required
-                        value={formData.poste}
-                        onChange={handleChange}
-                        onBlur={() => handleBlur('poste')}
-                        className={`w-full px-4 py-3 border ${
-                          errors.poste && touched.poste ? 'border-red-500' : 'border-gray-300'
-                        } rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all`}
-                        placeholder="Ex: Secrétaire Général"
-                      />
-                      {errors.poste && touched.poste && (
-                        <div className="flex items-center gap-1 mt-1 text-red-600">
-                          <AlertCircle className="h-4 w-4" />
-                          <span className="text-sm">{errors.poste}</span>
-                        </div>
-                      )}
-=======
                       <label htmlFor="nom" className="block text-gray-700 font-medium mb-2">Nom Complet <span className="text-red-500">*</span></label>
                       <input type="text" id="nom" name="nom" required value={formData.nom} onChange={handleChange} onBlur={() => handleBlur('nom')}
                         className={`w-full px-4 py-3 border ${errors.nom && touched.nom ? 'border-red-500 bg-red-50' : 'border-gray-300 bg-gray-50'} rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent focus:bg-white outline-none transition-all`}
@@ -660,61 +389,11 @@ export function ContactDemo() {
                         className={`w-full px-4 py-3 border ${errors.poste && touched.poste ? 'border-red-500 bg-red-50' : 'border-gray-300 bg-gray-50'} rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent focus:bg-white outline-none transition-all`}
                         placeholder="Ex: Secrétaire Général" />
                       {errors.poste && touched.poste && <div className="flex items-center gap-1 mt-2 text-red-600"><AlertCircle className="h-4 w-4" /><span className="text-sm">{errors.poste}</span></div>}
->>>>>>> origin/front
                     </div>
                   </div>
 
                   <div className="grid md:grid-cols-2 gap-4">
                     <div>
-<<<<<<< HEAD
-                      <label htmlFor="email" className="block text-gray-700 mb-2">
-                        Email Professionnel *
-                      </label>
-                      <input
-                        type="email"
-                        id="email"
-                        name="email"
-                        required
-                        value={formData.email}
-                        onChange={handleChange}
-                        onBlur={() => handleBlur('email')}
-                        className={`w-full px-4 py-3 border ${
-                          errors.email && touched.email ? 'border-red-500' : 'border-gray-300'
-                        } rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all`}
-                        placeholder="email@mairie.cm"
-                      />
-                      {errors.email && touched.email && (
-                        <div className="flex items-center gap-1 mt-1 text-red-600">
-                          <AlertCircle className="h-4 w-4" />
-                          <span className="text-sm">{errors.email}</span>
-                        </div>
-                      )}
-                    </div>
-
-                    <div>
-                      <label htmlFor="telephone" className="block text-gray-700 mb-2">
-                        Téléphone *
-                      </label>
-                      <input
-                        type="tel"
-                        id="telephone"
-                        name="telephone"
-                        required
-                        value={formData.telephone}
-                        onChange={handleChange}
-                        onBlur={() => handleBlur('telephone')}
-                        className={`w-full px-4 py-3 border ${
-                          errors.telephone && touched.telephone ? 'border-red-500' : 'border-gray-300'
-                        } rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all`}
-                        placeholder="+237 6XX XXX XXX"
-                      />
-                      {errors.telephone && touched.telephone && (
-                        <div className="flex items-center gap-1 mt-1 text-red-600">
-                          <AlertCircle className="h-4 w-4" />
-                          <span className="text-sm">{errors.telephone}</span>
-                        </div>
-                      )}
-=======
                       <label htmlFor="email" className="block text-gray-700 font-medium mb-2">Email <span className="text-red-500">*</span></label>
                       <input type="email" id="email" name="email" required value={formData.email} onChange={handleChange} onBlur={() => handleBlur('email')}
                         className={`w-full px-4 py-3 border ${errors.email && touched.email ? 'border-red-500 bg-red-50' : 'border-gray-300 bg-gray-50'} rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent focus:bg-white outline-none transition-all`}
@@ -727,43 +406,11 @@ export function ContactDemo() {
                         className={`w-full px-4 py-3 border ${errors.telephone && touched.telephone ? 'border-red-500 bg-red-50' : 'border-gray-300 bg-gray-50'} rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent focus:bg-white outline-none transition-all`}
                         placeholder="+237 6XX XXX XXX" />
                       {errors.telephone && touched.telephone && <div className="flex items-center gap-1 mt-2 text-red-600"><AlertCircle className="h-4 w-4" /><span className="text-sm">{errors.telephone}</span></div>}
->>>>>>> origin/front
                     </div>
                   </div>
 
                   <div className="grid md:grid-cols-2 gap-4">
                     <div>
-<<<<<<< HEAD
-                      <label htmlFor="tailleMairie" className="block text-gray-700 mb-2">
-                        Taille de la Commune
-                      </label>
-                      <select
-                        id="tailleMairie"
-                        name="tailleMairie"
-                        value={formData.tailleMairie}
-                        onChange={handleChange}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all"
-                      >
-                        <option value="">Sélectionner...</option>
-                        <option value="petite">Petite (&lt; 10 000 habitants)</option>
-                        <option value="moyenne">Moyenne (10 000 - 50 000)</option>
-                        <option value="grande">Grande (50 000 - 200 000)</option>
-                        <option value="metropole">Métropole (&gt; 200 000)</option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label htmlFor="budget" className="block text-gray-700 mb-2">
-                        Budget Estimé
-                      </label>
-                      <select
-                        id="budget"
-                        name="budget"
-                        value={formData.budget}
-                        onChange={handleChange}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all"
-                      >
-=======
                       <label htmlFor="tailleMairie" className="block text-gray-700 font-medium mb-2">Taille de la Commune</label>
                       <select id="tailleMairie" name="tailleMairie" value={formData.tailleMairie} onChange={handleChange}
                         className="w-full px-4 py-3 border border-gray-300 bg-gray-50 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent focus:bg-white outline-none transition-all">
@@ -778,7 +425,6 @@ export function ContactDemo() {
                       <label htmlFor="budget" className="block text-gray-700 font-medium mb-2">Budget Estimé</label>
                       <select id="budget" name="budget" value={formData.budget} onChange={handleChange}
                         className="w-full px-4 py-3 border border-gray-300 bg-gray-50 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent focus:bg-white outline-none transition-all">
->>>>>>> origin/front
                         <option value="">Sélectionner...</option>
                         <option value="moins-1m">&lt; 1M FCFA</option>
                         <option value="1m-3m">1M - 3M FCFA</option>
@@ -789,83 +435,18 @@ export function ContactDemo() {
                   </div>
 
                   <div>
-<<<<<<< HEAD
-                    <label htmlFor="besoin" className="block text-gray-700 mb-2">
-                      Besoin Principal
-                    </label>
-                    <select
-                      id="besoin"
-                      name="besoin"
-                      value={formData.besoin}
-                      onChange={handleChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all"
-                    >
-                      <option value="">Sélectionner...</option>
-                      <option value="nouveau">Création d'un nouveau site</option>
-                      <option value="refonte">Refonte d'un site existant</option>
-=======
                     <label htmlFor="besoin" className="block text-gray-700 font-medium mb-2">Besoin Principal</label>
                     <select id="besoin" name="besoin" value={formData.besoin} onChange={handleChange}
                       className="w-full px-4 py-3 border border-gray-300 bg-gray-50 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent focus:bg-white outline-none transition-all">
                       <option value="">Sélectionner...</option>
                       <option value="nouveau">Création nouveau site</option>
                       <option value="refonte">Refonte site existant</option>
->>>>>>> origin/front
                       <option value="migration">Migration vers CameroonCMS</option>
                       <option value="conseil">Besoin de conseil</option>
                     </select>
                   </div>
 
                   <div>
-<<<<<<< HEAD
-                    <label htmlFor="message" className="block text-gray-700 mb-2">
-                      Message / Détails du Projet
-                    </label>
-                    <textarea
-                      id="message"
-                      name="message"
-                      rows={4}
-                      value={formData.message}
-                      onChange={handleChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all resize-none"
-                      placeholder="Décrivez vos besoins spécifiques, vos attentes, vos délais souhaités..."
-                    />
-                  </div>
-
-                  <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-                    <p className="text-gray-700 flex items-start gap-2">
-                      <CheckCircle className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
-                      <span>
-                        En soumettant ce formulaire, vous acceptez d'être contacté par notre équipe 
-                        commerciale concernant votre demande de démo.
-                      </span>
-                    </p>
-                  </div>
-
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="w-full bg-gradient-to-r from-green-600 to-yellow-500 text-white py-4 px-6 rounded-lg hover:from-green-700 hover:to-yellow-600 transition-all shadow-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {loading ? (
-                      <>
-                        <Loader2 className="h-5 w-5 animate-spin" />
-                        Envoi en cours...
-                      </>
-                    ) : (
-                      <>
-                        Envoyer la Demande
-                        <Send className="h-5 w-5" />
-                      </>
-                    )}
-                  </button>
-
-                  <p className="text-center text-gray-500">
-                    Ou appelez-nous directement au{' '}
-                    <a href="tel:+237XXXXXXXXX" className="text-green-600 hover:text-green-700">
-                      +237 XXX XXX XXX
-                    </a>
-=======
                     <label htmlFor="message" className="block text-gray-700 font-medium mb-2">Message</label>
                     <textarea id="message" name="message" rows={4} value={formData.message} onChange={handleChange}
                       className="w-full px-4 py-3 border border-gray-300 bg-gray-50 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent focus:bg-white outline-none transition-all resize-none"
@@ -890,7 +471,6 @@ export function ContactDemo() {
 
                   <p className="text-center text-gray-500 text-sm">
                     Ou appelez-nous: <a href="tel:+237XXXXXXXXX" className="text-green-600 hover:text-green-700 font-medium">+237 XXX XXX XXX</a>
->>>>>>> origin/front
                   </p>
                 </form>
               </>

@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-import React, { useState, useEffect } from 'react';
-=======
 import { useState, useEffect } from 'react';
->>>>>>> origin/front
 import { ArrowRight, Building2, Globe, Users, ChevronLeft, ChevronRight } from 'lucide-react';
 
 export function Header() {
