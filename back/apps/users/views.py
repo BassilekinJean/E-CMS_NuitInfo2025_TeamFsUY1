@@ -12,7 +12,7 @@ from .serializers import (
     InscriptionSerializer, UtilisateurSerializer, UtilisateurListSerializer,
     ProfilAgentCommunalSerializer,
     ChangerMotDePasseSerializer, CreerAgentSerializer,
-    DemandeResetPasswordSerializer, ConfirmerResetPasswordSerializer,
+    DemandeOTPSerializer, VerifierOTPSerializer, ResetPasswordAvecTokenSerializer,
     VerifierEmailSerializer, RenvoiVerificationEmailSerializer
 )
 
@@ -369,13 +369,16 @@ class RenvoiVerificationEmailView(APIView):
         })
 
 
-class DemandeResetPasswordView(APIView):
-    """Vue pour demander la réinitialisation du mot de passe"""
+class DemandeOTPView(APIView):
+    """
+    Vue pour demander un code OTP (mot de passe oublié)
+    Envoie un code à 6 chiffres par email, valide 6 minutes
+    """
     
     permission_classes = [permissions.AllowAny]
     
     def post(self, request):
-        serializer = DemandeResetPasswordSerializer(data=request.data)
+        serializer = DemandeOTPSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         
         email = serializer.validated_data['email'].lower()
@@ -383,31 +386,31 @@ class DemandeResetPasswordView(APIView):
         try:
             utilisateur = Utilisateur.objects.get(email=email)
             
-            # Générer le token
+            # Générer le token avec code OTP
             token = TokenVerification.generer_token(
                 utilisateur,
-                TokenVerification.TypeToken.PASSWORD_RESET
+                TokenVerification.TypeToken.PASSWORD_RESET_OTP
             )
             
-            lien_reset = f"{settings.FRONTEND_URL}/reset-password/{token.token}"
-            
-            sujet = "E-CMS - Réinitialisation de votre mot de passe"
+            sujet = "E-CMS - Code de vérification"
             message_html = f"""
             <html>
             <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
                 <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-                    <h2 style="color: #0066CC;">Réinitialisation du mot de passe</h2>
+                    <h2 style="color: #0066CC;">Réinitialisation de mot de passe</h2>
                     <p>Bonjour <strong>{utilisateur.nom}</strong>,</p>
                     <p>Vous avez demandé la réinitialisation de votre mot de passe E-CMS.</p>
-                    <p>Cliquez sur le bouton ci-dessous pour définir un nouveau mot de passe :</p>
-                    <p style="text-align: center; margin: 30px 0;">
-                        <a href="{lien_reset}" 
-                           style="background-color: #DC3545; color: white; padding: 12px 30px; 
-                                  text-decoration: none; border-radius: 5px; display: inline-block;">
-                            Réinitialiser mon mot de passe
-                        </a>
+                    <p>Voici votre code de vérification :</p>
+                    <div style="text-align: center; margin: 30px 0;">
+                        <span style="background-color: #f5f5f5; font-size: 32px; font-weight: bold; 
+                                     letter-spacing: 8px; padding: 15px 30px; border-radius: 10px;
+                                     border: 2px dashed #0066CC; display: inline-block;">
+                            {token.code_otp}
+                        </span>
+                    </div>
+                    <p style="text-align: center; color: #DC3545; font-weight: bold;">
+                        ⏱️ Ce code expire dans 6 minutes
                     </p>
-                    <p><strong>⚠️ Ce lien expire dans 1 heure.</strong></p>
                     <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
                     <p style="color: #888; font-size: 12px;">
                         Si vous n'avez pas demandé cette réinitialisation, ignorez cet email.
@@ -424,24 +427,84 @@ class DemandeResetPasswordView(APIView):
                 settings.DEFAULT_FROM_EMAIL,
                 [utilisateur.email],
                 html_message=message_html,
-                fail_silently=True
+                fail_silently=False
             )
             
         except Utilisateur.DoesNotExist:
             pass  # Ne pas révéler si l'email existe (sécurité)
         
         return Response({
-            'message': 'Si cet email est associé à un compte, vous recevrez un lien de réinitialisation.'
+            'message': 'Si cet email est associé à un compte, vous recevrez un code de vérification.',
+            'expiration_minutes': 6
         })
 
 
-class ConfirmerResetPasswordView(APIView):
-    """Vue pour confirmer la réinitialisation du mot de passe"""
+class VerifierOTPView(APIView):
+    """
+    Vue pour vérifier le code OTP
+    Si valide, renvoie un token pour réinitialiser le mot de passe
+    """
     
     permission_classes = [permissions.AllowAny]
     
     def post(self, request):
-        serializer = ConfirmerResetPasswordSerializer(data=request.data)
+        serializer = VerifierOTPSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        
+        email = serializer.validated_data['email'].lower()
+        code_otp = serializer.validated_data['code_otp']
+        
+        try:
+            utilisateur = Utilisateur.objects.get(email=email)
+            
+            # Chercher le token OTP actif
+            token = TokenVerification.objects.filter(
+                utilisateur=utilisateur,
+                type_token=TokenVerification.TypeToken.PASSWORD_RESET_OTP,
+                est_utilise=False
+            ).order_by('-date_creation').first()
+            
+            if not token:
+                return Response(
+                    {'error': 'Aucun code OTP en attente. Veuillez demander un nouveau code.'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            if not token.est_valide():
+                return Response(
+                    {'error': 'Le code OTP a expiré. Veuillez demander un nouveau code.'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            if token.verifier_otp(code_otp):
+                return Response({
+                    'message': 'Code OTP vérifié avec succès.',
+                    'token': token.token,
+                    'email': utilisateur.email
+                })
+            else:
+                return Response(
+                    {'error': 'Code OTP invalide. Veuillez vérifier et réessayer.'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+                
+        except Utilisateur.DoesNotExist:
+            return Response(
+                {'error': 'Code OTP invalide.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+
+class ResetPasswordView(APIView):
+    """
+    Vue pour réinitialiser le mot de passe après validation OTP
+    Retourne les tokens JWT (access + refresh)
+    """
+    
+    permission_classes = [permissions.AllowAny]
+    
+    def post(self, request):
+        serializer = ResetPasswordAvecTokenSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         
         token_str = serializer.validated_data['token']
@@ -450,12 +513,12 @@ class ConfirmerResetPasswordView(APIView):
         try:
             token = TokenVerification.objects.get(
                 token=token_str,
-                type_token=TokenVerification.TypeToken.PASSWORD_RESET
+                type_token=TokenVerification.TypeToken.PASSWORD_RESET_OTP
             )
             
-            if not token.est_valide():
+            if not token.peut_reset_password():
                 return Response(
-                    {'error': 'Ce lien a expiré. Veuillez demander un nouveau lien.'},
+                    {'error': 'Token invalide ou OTP non vérifié. Veuillez recommencer le processus.'},
                     status=status.HTTP_400_BAD_REQUEST
                 )
             
@@ -467,13 +530,21 @@ class ConfirmerResetPasswordView(APIView):
             # Marquer le token comme utilisé
             token.marquer_utilise()
             
+            # Générer les tokens JWT
+            refresh = RefreshToken.for_user(utilisateur)
+            
             return Response({
-                'message': 'Mot de passe réinitialisé avec succès ! Vous pouvez maintenant vous connecter.'
+                'message': 'Mot de passe réinitialisé avec succès !',
+                'utilisateur': UtilisateurSerializer(utilisateur).data,
+                'tokens': {
+                    'refresh': str(refresh),
+                    'access': str(refresh.access_token),
+                }
             })
             
         except TokenVerification.DoesNotExist:
             return Response(
-                {'error': 'Lien de réinitialisation invalide.'},
+                {'error': 'Token de réinitialisation invalide.'},
                 status=status.HTTP_400_BAD_REQUEST
             )
 

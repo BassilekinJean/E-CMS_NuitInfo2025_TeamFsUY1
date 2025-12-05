@@ -7,9 +7,11 @@ from .models import Projet, MiseAJourProjet, DocumentProjet
 class DocumentProjetSerializer(serializers.ModelSerializer):
     """Serializer pour les documents de projet"""
     
+    type_document_display = serializers.CharField(source='get_type_document_display', read_only=True)
+    
     class Meta:
         model = DocumentProjet
-        fields = ['id', 'titre', 'type_document', 'fichier', 'date_ajout']
+        fields = ['id', 'titre', 'type_document', 'type_document_display', 'fichier', 'description', 'est_public', 'date_creation']
 
 
 # ===== Mises à jour de Projet =====
@@ -17,13 +19,13 @@ class DocumentProjetSerializer(serializers.ModelSerializer):
 class MiseAJourProjetSerializer(serializers.ModelSerializer):
     """Serializer pour les mises à jour"""
     
-    auteur_nom = serializers.CharField(source='auteur.get_full_name', read_only=True)
+    auteur_nom = serializers.CharField(source='auteur.nom', read_only=True)
     
     class Meta:
         model = MiseAJourProjet
         fields = [
-            'id', 'titre', 'contenu', 'avancement_avant', 'avancement_apres',
-            'auteur', 'auteur_nom', 'date_mise_a_jour'
+            'id', 'titre', 'description', 'avancement', 'budget_depense', 'image',
+            'auteur', 'auteur_nom', 'date_creation'
         ]
         read_only_fields = ['auteur']
 
@@ -33,7 +35,7 @@ class MiseAJourCreateSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = MiseAJourProjet
-        fields = ['titre', 'contenu', 'avancement_apres']
+        fields = ['titre', 'description', 'avancement', 'budget_depense', 'image']
 
 
 # ===== Projets =====
@@ -43,13 +45,16 @@ class ProjetListSerializer(serializers.ModelSerializer):
     
     mairie_nom = serializers.CharField(source='mairie.nom', read_only=True)
     statut_display = serializers.CharField(source='get_statut_display', read_only=True)
+    categorie_display = serializers.CharField(source='get_categorie_display', read_only=True)
     budget_formate = serializers.SerializerMethodField()
     
     class Meta:
         model = Projet
         fields = [
-            'id', 'titre', 'image', 'mairie_nom', 'statut', 'statut_display',
-            'budget', 'budget_formate', 'avancement', 'date_debut', 'date_fin_prevue'
+            'id', 'titre', 'slug', 'image_principale', 'mairie', 'mairie_nom',
+            'statut', 'statut_display', 'categorie', 'categorie_display',
+            'budget', 'budget_formate', 'avancement', 'date_debut', 'date_fin',
+            'est_public', 'est_mis_en_avant'
         ]
     
     def get_budget_formate(self, obj):
@@ -62,28 +67,36 @@ class ProjetDetailSerializer(serializers.ModelSerializer):
     """Serializer détaillé pour un projet"""
     
     mairie_nom = serializers.CharField(source='mairie.nom', read_only=True)
-    responsable = serializers.SerializerMethodField()
+    statut_display = serializers.CharField(source='get_statut_display', read_only=True)
+    categorie_display = serializers.CharField(source='get_categorie_display', read_only=True)
+    responsable_info = serializers.SerializerMethodField()
     mises_a_jour = MiseAJourProjetSerializer(many=True, read_only=True)
     documents = DocumentProjetSerializer(many=True, read_only=True)
     budget_formate = serializers.SerializerMethodField()
-    depenses_formatees = serializers.SerializerMethodField()
+    budget_depense_formate = serializers.SerializerMethodField()
+    budget_restant = serializers.SerializerMethodField()
+    pourcentage_budget_utilise = serializers.SerializerMethodField()
     
     class Meta:
         model = Projet
         fields = [
-            'id', 'titre', 'description', 'image', 'mairie', 'mairie_nom',
-            'statut', 'budget', 'budget_formate', 'depenses', 'depenses_formatees',
-            'avancement', 'date_debut', 'date_fin_prevue', 'date_fin_reelle',
-            'responsable', 'localisation', 'latitude', 'longitude',
-            'mises_a_jour', 'documents', 'date_creation'
+            'id', 'titre', 'slug', 'description', 'image_principale', 'mairie', 'mairie_nom',
+            'statut', 'statut_display', 'categorie', 'categorie_display',
+            'budget', 'budget_formate', 'budget_depense', 'budget_depense_formate',
+            'budget_restant', 'pourcentage_budget_utilise',
+            'avancement', 'date_debut', 'date_fin', 'date_fin_reelle',
+            'responsable', 'responsable_info', 'lieu', 'latitude', 'longitude',
+            'est_public', 'est_mis_en_avant',
+            'mises_a_jour', 'documents', 'date_creation', 'date_modification'
         ]
         read_only_fields = ['mairie', 'responsable']
     
-    def get_responsable(self, obj):
+    def get_responsable_info(self, obj):
         if obj.responsable:
             return {
                 'id': obj.responsable.id,
-                'nom_complet': obj.responsable.get_full_name()
+                'nom': obj.responsable.nom,
+                'email': obj.responsable.email
             }
         return None
     
@@ -92,10 +105,16 @@ class ProjetDetailSerializer(serializers.ModelSerializer):
             return f"{obj.budget:,.0f} FCFA".replace(",", " ")
         return None
     
-    def get_depenses_formatees(self, obj):
-        if obj.depenses:
-            return f"{obj.depenses:,.0f} FCFA".replace(",", " ")
+    def get_budget_depense_formate(self, obj):
+        if obj.budget_depense:
+            return f"{obj.budget_depense:,.0f} FCFA".replace(",", " ")
         return None
+    
+    def get_budget_restant(self, obj):
+        return obj.get_budget_restant()
+    
+    def get_pourcentage_budget_utilise(self, obj):
+        return obj.get_pourcentage_budget_utilise()
 
 
 class ProjetCreateSerializer(serializers.ModelSerializer):
@@ -104,31 +123,34 @@ class ProjetCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Projet
         fields = [
-            'titre', 'description', 'image', 'statut', 'budget', 'depenses',
-            'avancement', 'date_debut', 'date_fin_prevue', 'localisation',
-            'latitude', 'longitude'
+            'titre', 'description', 'image_principale', 'categorie', 'statut',
+            'budget', 'budget_depense', 'avancement', 'date_debut', 'date_fin',
+            'lieu', 'latitude', 'longitude', 'est_public', 'est_mis_en_avant'
         ]
 
 
 class ProjetPublicSerializer(serializers.ModelSerializer):
     """Serializer public pour transparence"""
     
+    statut_display = serializers.CharField(source='get_statut_display', read_only=True)
+    categorie_display = serializers.CharField(source='get_categorie_display', read_only=True)
     mises_a_jour_recentes = serializers.SerializerMethodField()
     budget_formate = serializers.SerializerMethodField()
-    depenses_formatees = serializers.SerializerMethodField()
-    taux_utilisation_budget = serializers.SerializerMethodField()
+    budget_depense_formate = serializers.SerializerMethodField()
+    pourcentage_budget_utilise = serializers.SerializerMethodField()
     
     class Meta:
         model = Projet
         fields = [
-            'id', 'titre', 'description', 'image', 'statut', 
-            'budget', 'budget_formate', 'depenses', 'depenses_formatees',
-            'taux_utilisation_budget', 'avancement', 'date_debut', 
-            'date_fin_prevue', 'localisation', 'mises_a_jour_recentes'
+            'id', 'titre', 'slug', 'description', 'image_principale',
+            'statut', 'statut_display', 'categorie', 'categorie_display',
+            'budget', 'budget_formate', 'budget_depense', 'budget_depense_formate',
+            'pourcentage_budget_utilise', 'avancement', 'date_debut', 'date_fin',
+            'lieu', 'mises_a_jour_recentes'
         ]
     
     def get_mises_a_jour_recentes(self, obj):
-        recentes = obj.mises_a_jour.order_by('-date_mise_a_jour')[:3]
+        recentes = obj.mises_a_jour.order_by('-date_creation')[:3]
         return MiseAJourProjetSerializer(recentes, many=True).data
     
     def get_budget_formate(self, obj):
@@ -136,15 +158,13 @@ class ProjetPublicSerializer(serializers.ModelSerializer):
             return f"{obj.budget:,.0f} FCFA".replace(",", " ")
         return None
     
-    def get_depenses_formatees(self, obj):
-        if obj.depenses:
-            return f"{obj.depenses:,.0f} FCFA".replace(",", " ")
+    def get_budget_depense_formate(self, obj):
+        if obj.budget_depense:
+            return f"{obj.budget_depense:,.0f} FCFA".replace(",", " ")
         return None
     
-    def get_taux_utilisation_budget(self, obj):
-        if obj.budget and obj.depenses:
-            return round((obj.depenses / obj.budget) * 100, 1)
-        return 0
+    def get_pourcentage_budget_utilise(self, obj):
+        return obj.get_pourcentage_budget_utilise()
 
 
 # ===== Statistiques de Projets =====
@@ -158,7 +178,7 @@ class StatistiqueProjetsSerializer(serializers.Serializer):
         stats = queryset.aggregate(
             total_projets=Count('id'),
             budget_total=Sum('budget'),
-            depenses_totales=Sum('depenses'),
+            depenses_totales=Sum('budget_depense'),
             avancement_moyen=Avg('avancement')
         )
         

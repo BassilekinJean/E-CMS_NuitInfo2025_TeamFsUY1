@@ -89,8 +89,8 @@ class ChangerMotDePasseSerializer(serializers.Serializer):
 
 # ===== Authentification Avancée =====
 
-class DemandeResetPasswordSerializer(serializers.Serializer):
-    """Serializer pour demander la réinitialisation du mot de passe"""
+class DemandeOTPSerializer(serializers.Serializer):
+    """Serializer pour demander un code OTP (mot de passe oublié)"""
     
     email = serializers.EmailField(required=True)
     
@@ -99,8 +99,20 @@ class DemandeResetPasswordSerializer(serializers.Serializer):
         return value.lower()
 
 
-class ConfirmerResetPasswordSerializer(serializers.Serializer):
-    """Serializer pour confirmer la réinitialisation du mot de passe"""
+class VerifierOTPSerializer(serializers.Serializer):
+    """Serializer pour vérifier le code OTP"""
+    
+    email = serializers.EmailField(required=True)
+    code_otp = serializers.CharField(required=True, min_length=6, max_length=6)
+    
+    def validate_code_otp(self, value):
+        if not value.isdigit():
+            raise serializers.ValidationError("Le code OTP doit contenir uniquement des chiffres.")
+        return value
+
+
+class ResetPasswordAvecTokenSerializer(serializers.Serializer):
+    """Serializer pour réinitialiser le mot de passe après validation OTP"""
     
     token = serializers.CharField(required=True)
     nouveau_mot_de_passe = serializers.CharField(required=True, validators=[validate_password])

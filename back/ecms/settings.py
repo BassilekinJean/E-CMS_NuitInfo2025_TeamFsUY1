@@ -173,11 +173,12 @@ REST_FRAMEWORK = {
 
 # JWT Configuration
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(hours=1),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
-    'ROTATE_REFRESH_TOKENS': True,
-    'BLACKLIST_AFTER_ROTATION': True,
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=2),  # Access token expire après 2h
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),  # Refresh token expire après 7 jours
+    'ROTATE_REFRESH_TOKENS': True,                # Nouveau refresh token à chaque rafraîchissement
+    'BLACKLIST_AFTER_ROTATION': True,             # Ancien refresh token invalidé
     'AUTH_HEADER_TYPES': ('Bearer',),
+    'UPDATE_LAST_LOGIN': True,                    # Mettre à jour dernière connexion
 }
 
 # CORS Configuration
@@ -205,9 +206,9 @@ DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'E-CMS <noreply@ecms.c
 # URL du frontend pour les liens dans les emails
 FRONTEND_URL = os.environ.get('FRONTEND_URL', 'http://localhost:3000')
 
-# Durée de validité des tokens (en heures)
+# Durée de validité des tokens
 EMAIL_VERIFICATION_TOKEN_EXPIRY = 24  # 24 heures
-PASSWORD_RESET_TOKEN_EXPIRY = 1  # 1 heure
+OTP_EXPIRY_MINUTES = 6  # Code OTP expire après 6 minutes
 
 # ===== API Documentation (drf-spectacular) =====
 SPECTACULAR_SETTINGS = {

@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from django.db import models
 from .models import Evenement, InscriptionEvenement, Newsletter, AbonneNewsletter
 
 
@@ -8,19 +9,22 @@ class EvenementListSerializer(serializers.ModelSerializer):
     """Serializer pour la liste des événements"""
     
     mairie_nom = serializers.CharField(source='mairie.nom', read_only=True)
+    categorie_display = serializers.CharField(source='get_categorie_display', read_only=True)
+    statut_display = serializers.CharField(source='get_statut_display', read_only=True)
     nombre_inscrits = serializers.SerializerMethodField()
     places_restantes = serializers.SerializerMethodField()
     
     class Meta:
         model = Evenement
         fields = [
-            'id', 'titre', 'image', 'lieu', 'mairie_nom', 'categorie',
-            'date_debut', 'date_fin', 'nombre_places', 'nombre_inscrits',
-            'places_restantes', 'est_gratuit', 'prix', 'est_publie'
+            'id', 'nom', 'slug', 'image', 'lieu', 'mairie', 'mairie_nom',
+            'categorie', 'categorie_display', 'statut', 'statut_display',
+            'date', 'heure_debut', 'heure_fin', 'nombre_places',
+            'nombre_inscrits', 'places_restantes', 'est_public', 'est_mis_en_avant'
         ]
     
     def get_nombre_inscrits(self, obj):
-        return obj.inscriptions.filter(statut=InscriptionEvenement.Statut.CONFIRMEE).count()
+        return obj.inscriptions.filter(statut=InscriptionEvenement.Statut.CONFIRME).count()
     
     def get_places_restantes(self, obj):
         if obj.nombre_places:
@@ -33,7 +37,9 @@ class EvenementDetailSerializer(serializers.ModelSerializer):
     """Serializer détaillé pour un événement"""
     
     mairie_nom = serializers.CharField(source='mairie.nom', read_only=True)
-    organisateur = serializers.SerializerMethodField()
+    categorie_display = serializers.CharField(source='get_categorie_display', read_only=True)
+    statut_display = serializers.CharField(source='get_statut_display', read_only=True)
+    organisateur_info = serializers.SerializerMethodField()
     nombre_inscrits = serializers.SerializerMethodField()
     places_restantes = serializers.SerializerMethodField()
     inscriptions = serializers.SerializerMethodField()
@@ -41,25 +47,27 @@ class EvenementDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Evenement
         fields = [
-            'id', 'titre', 'description', 'image', 'lieu', 'adresse',
-            'latitude', 'longitude', 'mairie', 'mairie_nom', 'organisateur',
-            'categorie', 'date_debut', 'date_fin', 'nombre_places',
-            'nombre_inscrits', 'places_restantes', 'est_gratuit', 'prix',
-            'lien_externe', 'est_publie', 'inscriptions',
-            'date_creation', 'date_modification'
+            'id', 'nom', 'slug', 'description', 'image', 'lieu',
+            'latitude', 'longitude', 'mairie', 'mairie_nom', 'organisateur', 'organisateur_info',
+            'contact_organisateur', 'categorie', 'categorie_display', 'statut', 'statut_display',
+            'date', 'heure_debut', 'heure_fin', 'nombre_places',
+            'nombre_inscrits', 'places_restantes', 'inscription_requise', 'places_limitees',
+            'est_public', 'est_mis_en_avant', 'est_recurrent', 'recurrence',
+            'inscriptions', 'date_creation', 'date_modification'
         ]
         read_only_fields = ['mairie', 'organisateur']
     
-    def get_organisateur(self, obj):
+    def get_organisateur_info(self, obj):
         if obj.organisateur:
             return {
                 'id': obj.organisateur.id,
-                'nom_complet': obj.organisateur.get_full_name()
+                'nom': obj.organisateur.nom,
+                'email': obj.organisateur.email
             }
         return None
     
     def get_nombre_inscrits(self, obj):
-        return obj.inscriptions.filter(statut=InscriptionEvenement.Statut.CONFIRMEE).count()
+        return obj.inscriptions.filter(statut=InscriptionEvenement.Statut.CONFIRME).count()
     
     def get_places_restantes(self, obj):
         if obj.nombre_places:
@@ -83,16 +91,19 @@ class EvenementCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Evenement
         fields = [
-            'titre', 'description', 'image', 'lieu', 'adresse',
-            'latitude', 'longitude', 'categorie', 'date_debut', 'date_fin',
-            'nombre_places', 'est_gratuit', 'prix', 'lien_externe', 'est_publie'
+            'nom', 'description', 'image', 'lieu',
+            'latitude', 'longitude', 'categorie', 'statut',
+            'date', 'heure_debut', 'heure_fin',
+            'nombre_places', 'inscription_requise', 'places_limitees',
+            'contact_organisateur', 'est_public', 'est_mis_en_avant',
+            'est_recurrent', 'recurrence'
         ]
     
     def validate(self, data):
-        if data.get('date_fin') and data.get('date_debut'):
-            if data['date_fin'] < data['date_debut']:
+        if data.get('heure_fin') and data.get('heure_debut'):
+            if data['heure_fin'] < data['heure_debut']:
                 raise serializers.ValidationError(
-                    "La date de fin doit être après la date de début"
+                    "L'heure de fin doit être après l'heure de début"
                 )
         return data
 
@@ -100,6 +111,8 @@ class EvenementCreateSerializer(serializers.ModelSerializer):
 class EvenementPublicSerializer(serializers.ModelSerializer):
     """Serializer public pour un événement"""
     
+    categorie_display = serializers.CharField(source='get_categorie_display', read_only=True)
+    statut_display = serializers.CharField(source='get_statut_display', read_only=True)
     nombre_inscrits = serializers.SerializerMethodField()
     places_restantes = serializers.SerializerMethodField()
     complet = serializers.SerializerMethodField()
@@ -107,14 +120,15 @@ class EvenementPublicSerializer(serializers.ModelSerializer):
     class Meta:
         model = Evenement
         fields = [
-            'id', 'titre', 'description', 'image', 'lieu', 'adresse',
-            'latitude', 'longitude', 'categorie', 'date_debut', 'date_fin',
+            'id', 'nom', 'slug', 'description', 'image', 'lieu',
+            'latitude', 'longitude', 'categorie', 'categorie_display',
+            'statut', 'statut_display', 'date', 'heure_debut', 'heure_fin',
             'nombre_places', 'nombre_inscrits', 'places_restantes', 'complet',
-            'est_gratuit', 'prix', 'lien_externe'
+            'inscription_requise', 'contact_organisateur'
         ]
     
     def get_nombre_inscrits(self, obj):
-        return obj.inscriptions.filter(statut=InscriptionEvenement.Statut.CONFIRMEE).count()
+        return obj.inscriptions.filter(statut=InscriptionEvenement.Statut.CONFIRME).count()
     
     def get_places_restantes(self, obj):
         if obj.nombre_places:
@@ -133,20 +147,21 @@ class EvenementPublicSerializer(serializers.ModelSerializer):
 class InscriptionEvenementSerializer(serializers.ModelSerializer):
     """Serializer pour les inscriptions"""
     
-    participant = serializers.SerializerMethodField()
-    evenement_titre = serializers.CharField(source='evenement.titre', read_only=True)
+    participant_info = serializers.SerializerMethodField()
+    evenement_nom = serializers.CharField(source='evenement.nom', read_only=True)
+    statut_display = serializers.CharField(source='get_statut_display', read_only=True)
     
     class Meta:
         model = InscriptionEvenement
         fields = [
-            'id', 'evenement', 'evenement_titre', 'participant',
-            'statut', 'nombre_places', 'commentaire', 'date_inscription'
+            'id', 'evenement', 'evenement_nom', 'participant', 'participant_info',
+            'statut', 'statut_display', 'nombre_personnes', 'commentaire', 'date_inscription'
         ]
     
-    def get_participant(self, obj):
+    def get_participant_info(self, obj):
         return {
             'id': obj.participant.id,
-            'nom_complet': obj.participant.get_full_name(),
+            'nom': obj.participant.nom,
             'email': obj.participant.email,
             'telephone': obj.participant.telephone
         }
@@ -157,22 +172,22 @@ class InscriptionCreateSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = InscriptionEvenement
-        fields = ['evenement', 'nombre_places', 'commentaire']
+        fields = ['evenement', 'nombre_personnes', 'commentaire']
     
     def validate(self, data):
         evenement = data.get('evenement')
-        nombre_places = data.get('nombre_places', 1)
+        nombre_personnes = data.get('nombre_personnes', 1)
         
-        if not evenement.est_publie:
+        if not evenement.est_public:
             raise serializers.ValidationError("Cet événement n'est pas ouvert aux inscriptions")
         
         if evenement.nombre_places:
             inscrits = evenement.inscriptions.filter(
-                statut=InscriptionEvenement.Statut.CONFIRMEE
-            ).count()
+                statut=InscriptionEvenement.Statut.CONFIRME
+            ).aggregate(total=models.Sum('nombre_personnes'))['total'] or 0
             restantes = evenement.nombre_places - inscrits
             
-            if nombre_places > restantes:
+            if nombre_personnes > restantes:
                 raise serializers.ValidationError(
                     f"Il ne reste que {restantes} place(s) disponible(s)"
                 )
@@ -182,7 +197,7 @@ class InscriptionCreateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         request = self.context.get('request')
         validated_data['participant'] = request.user
-        validated_data['statut'] = InscriptionEvenement.Statut.CONFIRMEE
+        validated_data['statut'] = InscriptionEvenement.Statut.CONFIRME
         return super().create(validated_data)
 
 
@@ -192,32 +207,32 @@ class NewsletterListSerializer(serializers.ModelSerializer):
     """Serializer pour la liste des newsletters"""
     
     mairie_nom = serializers.CharField(source='mairie.nom', read_only=True)
-    nombre_destinataires = serializers.SerializerMethodField()
+    statut_display = serializers.CharField(source='get_statut_display', read_only=True)
     
     class Meta:
         model = Newsletter
         fields = [
-            'id', 'objet', 'mairie_nom', 'statut', 'nombre_destinataires',
+            'id', 'titre', 'mairie', 'mairie_nom', 'statut', 'statut_display',
+            'nombre_destinataires', 'nombre_ouvertures',
             'date_creation', 'date_envoi'
         ]
-    
-    def get_nombre_destinataires(self, obj):
-        return obj.mairie.abonnes_newsletter.filter(est_actif=True).count()
 
 
 class NewsletterDetailSerializer(serializers.ModelSerializer):
     """Serializer détaillé pour une newsletter"""
     
     mairie_nom = serializers.CharField(source='mairie.nom', read_only=True)
-    cree_par_nom = serializers.CharField(source='cree_par.get_full_name', read_only=True)
+    auteur_nom = serializers.CharField(source='auteur.nom', read_only=True)
+    statut_display = serializers.CharField(source='get_statut_display', read_only=True)
     
     class Meta:
         model = Newsletter
         fields = [
-            'id', 'objet', 'contenu', 'mairie', 'mairie_nom', 'statut',
-            'cree_par', 'cree_par_nom', 'date_creation', 'date_envoi'
+            'id', 'titre', 'contenu', 'mairie', 'mairie_nom', 'statut', 'statut_display',
+            'auteur', 'auteur_nom', 'nombre_destinataires', 'nombre_ouvertures',
+            'date_creation', 'date_envoi'
         ]
-        read_only_fields = ['mairie', 'cree_par', 'statut', 'date_envoi']
+        read_only_fields = ['mairie', 'auteur', 'statut', 'date_envoi', 'nombre_destinataires', 'nombre_ouvertures']
 
 
 class NewsletterCreateSerializer(serializers.ModelSerializer):
@@ -225,7 +240,7 @@ class NewsletterCreateSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Newsletter
-        fields = ['objet', 'contenu']
+        fields = ['titre', 'contenu']
 
 
 # ===== Abonnés Newsletter =====

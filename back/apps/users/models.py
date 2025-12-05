@@ -129,12 +129,12 @@ class ProfilAgentCommunal(models.Model):
 
 class TokenVerification(models.Model):
     """
-    Modèle pour les tokens de vérification (email et reset password)
+    Modèle pour les tokens de vérification (email et reset password avec OTP)
     """
     
     class TypeToken(models.TextChoices):
         EMAIL_VERIFICATION = 'email_verification', 'Vérification Email'
-        PASSWORD_RESET = 'password_reset', 'Réinitialisation Mot de Passe'
+        PASSWORD_RESET_OTP = 'password_reset_otp', 'Code OTP Réinitialisation'
     
     utilisateur = models.ForeignKey(
         Utilisateur,
@@ -142,12 +142,18 @@ class TokenVerification(models.Model):
         related_name='tokens_verification'
     )
     
-    token = models.CharField('Token', max_length=64, unique=True)
+    token = models.CharField('Token/Code OTP', max_length=64, unique=True)
     type_token = models.CharField(
         'Type de token',
         max_length=20,
         choices=TypeToken.choices
     )
+    
+    # Pour stocker le code OTP (6 chiffres)
+    code_otp = models.CharField('Code OTP', max_length=6, blank=True, null=True)
+    
+    # Pour le flux OTP en 2 étapes
+    otp_verifie = models.BooleanField('OTP vérifié', default=False)
     
     date_creation = models.DateTimeField('Date de création', auto_now_add=True)
     date_expiration = models.DateTimeField('Date d\'expiration')
@@ -176,22 +182,45 @@ class TokenVerification(models.Model):
         # Définir la durée d'expiration selon le type
         if type_token == cls.TypeToken.EMAIL_VERIFICATION:
             expiry_hours = getattr(settings, 'EMAIL_VERIFICATION_TOKEN_EXPIRY', 24)
+            expiry_delta = timedelta(hours=expiry_hours)
+            code_otp = None
         else:
-            expiry_hours = getattr(settings, 'PASSWORD_RESET_TOKEN_EXPIRY', 1)
+            # Pour OTP: 6 minutes d'expiration
+            expiry_delta = timedelta(minutes=6)
+            code_otp = cls._generer_code_otp()
         
         # Créer le nouveau token
         token = cls.objects.create(
             utilisateur=utilisateur,
             token=secrets.token_urlsafe(48),
             type_token=type_token,
-            date_expiration=timezone.now() + timedelta(hours=expiry_hours)
+            code_otp=code_otp,
+            date_expiration=timezone.now() + expiry_delta
         )
         
         return token
     
+    @staticmethod
+    def _generer_code_otp():
+        """Génère un code OTP de 6 chiffres"""
+        import random
+        return ''.join([str(random.randint(0, 9)) for _ in range(6)])
+    
     def est_valide(self):
         """Vérifie si le token est encore valide"""
         return not self.est_utilise and self.date_expiration > timezone.now()
+    
+    def verifier_otp(self, code):
+        """Vérifie si le code OTP correspond"""
+        if self.code_otp and self.code_otp == code and self.est_valide():
+            self.otp_verifie = True
+            self.save(update_fields=['otp_verifie'])
+            return True
+        return False
+    
+    def peut_reset_password(self):
+        """Vérifie si l'utilisateur peut réinitialiser le mot de passe (OTP vérifié)"""
+        return self.otp_verifie and self.est_valide()
     
     def marquer_utilise(self):
         """Marque le token comme utilisé"""

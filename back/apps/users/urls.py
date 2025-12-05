@@ -8,7 +8,7 @@ from .views import (
     CreerAgentView, ActiverDesactiverUtilisateurView,
     # Authentification avancée
     VerifierEmailView, RenvoiVerificationEmailView,
-    DemandeResetPasswordView, ConfirmerResetPasswordView,
+    DemandeOTPView, VerifierOTPView, ResetPasswordView,
     VerifierTokenView
 )
 
@@ -23,9 +23,10 @@ urlpatterns = [
     path('email/verifier/', VerifierEmailView.as_view(), name='verifier_email'),
     path('email/renvoyer-verification/', RenvoiVerificationEmailView.as_view(), name='renvoyer_verification'),
     
-    # Réinitialisation mot de passe
-    path('password/reset/', DemandeResetPasswordView.as_view(), name='demande_reset_password'),
-    path('password/reset/confirmer/', ConfirmerResetPasswordView.as_view(), name='confirmer_reset_password'),
+    # Réinitialisation mot de passe (flux OTP)
+    path('password/otp/demander/', DemandeOTPView.as_view(), name='demander_otp'),
+    path('password/otp/verifier/', VerifierOTPView.as_view(), name='verifier_otp'),
+    path('password/reset/', ResetPasswordView.as_view(), name='reset_password'),
     path('token/verifier/<str:token>/', VerifierTokenView.as_view(), name='verifier_token'),
     
     # Profil utilisateur connecté
