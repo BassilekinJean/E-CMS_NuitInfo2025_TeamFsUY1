@@ -11,16 +11,10 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/
  * Exemples:
  * - yaounde.ecms.cm → 'yaounde'
  * - yaounde.localhost:5173 → 'yaounde'
- * - localhost:5173 → null (portail national)
+ * - localhost:5173 → 'yaounde' (tenant par défaut en dev)
  */
 export function getTenantSlug(): string | null {
   const hostname = window.location.hostname.toLowerCase();
-  
-  // Cas spéciaux: pas de tenant
-  if (hostname === 'localhost' || hostname === '127.0.0.1' || 
-      hostname === 'ecms.cm' || hostname === 'www.ecms.cm') {
-    return null;
-  }
   
   // Pattern pour extraire le sous-domaine
   const match = hostname.match(/^([a-z0-9-]+)\.(ecms\.cm|localhost)$/i);
@@ -33,6 +27,21 @@ export function getTenantSlug(): string | null {
     }
   }
   
+  // En mode développement, utiliser un tenant par défaut si pas de sous-domaine
+  // Vérifier aussi le paramètre URL ?tenant=slug
+  const urlParams = new URLSearchParams(window.location.search);
+  const tenantParam = urlParams.get('tenant');
+  if (tenantParam) {
+    return tenantParam;
+  }
+  
+  // Tenant par défaut pour le développement local
+  if (hostname === 'localhost' || hostname === '127.0.0.1') {
+    // Vous pouvez changer cette valeur ou la mettre à null pour le portail national
+    return import.meta.env.VITE_DEFAULT_TENANT || 'yaounde';
+  }
+  
+  // Portail national (ecms.cm, www.ecms.cm)
   return null;
 }
 

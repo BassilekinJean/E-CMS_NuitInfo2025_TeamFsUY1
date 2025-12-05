@@ -91,6 +91,51 @@ class IsCommuneAdminOrReadOnly(permissions.BasePermission):
 # ===== AUTH VIEWS =====
 
 @extend_schema(tags=['Authentification'])
+class CustomLoginView(generics.GenericAPIView):
+    """Connexion utilisateur avec retour user + tokens"""
+    permission_classes = [permissions.AllowAny]
+    serializer_class = LoginSerializer
+    
+    def post(self, request):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            email = serializer.validated_data['email']
+            password = serializer.validated_data['password']
+            
+            try:
+                user = Utilisateur.objects.get(email=email)
+                if not user.check_password(password):
+                    return Response(
+                        {'detail': 'Email ou mot de passe incorrect'},
+                        status=status.HTTP_401_UNAUTHORIZED
+                    )
+                
+                if not user.is_active:
+                    return Response(
+                        {'detail': 'Ce compte est désactivé'},
+                        status=status.HTTP_401_UNAUTHORIZED
+                    )
+                
+                refresh = RefreshToken.for_user(user)
+                
+                return Response({
+                    'user': UtilisateurSerializer(user).data,
+                    'tokens': {
+                        'access': str(refresh.access_token),
+                        'refresh': str(refresh),
+                    }
+                })
+            
+            except Utilisateur.DoesNotExist:
+                return Response(
+                    {'detail': 'Email ou mot de passe incorrect'},
+                    status=status.HTTP_401_UNAUTHORIZED
+                )
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@extend_schema(tags=['Authentification'])
 class RegisterView(generics.CreateAPIView):
     """Inscription utilisateur"""
     permission_classes = [permissions.AllowAny]

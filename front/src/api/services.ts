@@ -32,7 +32,13 @@ import api, {
 export const authService = {
   async login(email: string, password: string): Promise<LoginResponse> {
     const response = await api.post<LoginResponse>('/auth/login/', { email, password });
-    api.setTokens(response.tokens.access, response.tokens.refresh);
+    // Gérer les deux formats de réponse possibles
+    if (response.tokens) {
+      api.setTokens(response.tokens.access, response.tokens.refresh);
+    } else if ((response as any).access && (response as any).refresh) {
+      // Format simple_jwt standard
+      api.setTokens((response as any).access, (response as any).refresh);
+    }
     return response;
   },
   

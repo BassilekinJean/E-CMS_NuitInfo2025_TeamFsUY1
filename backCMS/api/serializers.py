@@ -203,7 +203,12 @@ class ActualiteDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Actualite
         fields = '__all__'
-        read_only_fields = ['auteur', 'nombre_vues', 'date_creation', 'date_modification']
+        read_only_fields = ['auteur', 'nombre_vues', 'date_creation', 'date_modification', 'slug']
+        extra_kwargs = {
+            'slug': {'required': False, 'allow_blank': True},
+            'resume': {'required': False, 'allow_blank': True},
+            'image_principale': {'required': False},
+        }
 
 
 class PageCMSSerializer(serializers.ModelSerializer):
@@ -271,6 +276,13 @@ class EvenementDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Evenement
         fields = '__all__'
+        read_only_fields = ['date_creation', 'date_modification', 'slug']
+        extra_kwargs = {
+            'slug': {'required': False, 'allow_blank': True},
+            'organisateur': {'required': False},
+            'heure_fin': {'required': False},
+            'adresse': {'required': False},
+        }
 
 
 class InscriptionEvenementSerializer(serializers.ModelSerializer):

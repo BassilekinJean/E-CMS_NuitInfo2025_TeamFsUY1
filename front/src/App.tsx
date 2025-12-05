@@ -10,6 +10,7 @@ import { TenantProvider, useTenant } from './contexts/TenantContext';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { 
   TenantHomePage, 
+  PublicSitePage,
   ActualitesPage, 
   ActualiteDetailPage,
   EvenementsPage,
@@ -152,8 +153,8 @@ function TenantRoutes() {
   if (isTenantSite) {
     return (
       <Routes>
-        {/* Accueil commune */}
-        <Route path="/" element={<TenantHomePage />} />
+        {/* Accueil commune - Site personnalisé par le gérant */}
+        <Route path="/" element={<PublicSitePage />} />
         
         {/* Actualités */}
         <Route path="/actualites" element={<ActualitesPage />} />
@@ -205,7 +206,7 @@ function TenantRoutes() {
         <Route path="/verify-email" element={<EmailVerificationPage />} />
         
         {/* Fallback → accueil commune */}
-        <Route path="*" element={<TenantHomePage />} />
+        <Route path="*" element={<PublicSitePage />} />
       </Routes>
     );
   }

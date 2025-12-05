@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Building2, Lock, Mail, Eye, EyeOff, Shield, Users, Globe, ArrowRight, ArrowLeft, Home } from 'lucide-react';
 import { useToast } from './ToastProvider';
+import { useAuth } from '../contexts/AuthContext';
 
 interface LoginProps {
   onForgotPassword?: () => void;
@@ -9,6 +10,7 @@ interface LoginProps {
 
 export function Login({ onForgotPassword, onBackToHome }: LoginProps) {
   const toast = useToast();
+  const { login } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
@@ -27,17 +29,16 @@ export function Login({ onForgotPassword, onBackToHome }: LoginProps) {
     
     setIsLoading(true);
     
-    // Simulate login
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    // Simulate success/failure
-    if (formData.email === 'admin@mairie.cm' && formData.password === 'admin123') {
-      toast.success('Connexion réussie', 'Bienvenue sur CameroonCMS !');
-    } else {
-      toast.error('Échec de connexion', 'Email ou mot de passe incorrect');
+    try {
+      await login(formData.email, formData.password);
+      toast.success('Connexion réussie', 'Bienvenue sur E-CMS !');
+      // La redirection est gérée par AuthContext/ProtectedRoute
+    } catch (error: any) {
+      const message = error?.message || error?.detail || 'Email ou mot de passe incorrect';
+      toast.error('Échec de connexion', message);
+    } finally {
+      setIsLoading(false);
     }
-    
-    setIsLoading(false);
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {

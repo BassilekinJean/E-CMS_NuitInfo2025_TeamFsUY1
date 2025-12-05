@@ -49,14 +49,14 @@ export interface CMSEvent {
 }
 
 export interface CMSStats {
-  totalVisitors: number;
-  totalPageViews: number;
-  totalMessages: number;
-  totalPublications: number;
-  visitorsTrend: number;
-  pageViewsTrend: number;
-  messagesTrend: number;
-  publicationsTrend: number;
+  // Données réelles de l'API
+  actualites: number;
+  evenements: number;
+  projets: number;
+  projetsEnCours: number;
+  budgetTotalProjets: number;
+  services: number;
+  documentsOfficiels: number;
 }
 
 // ===== Helper Functions =====
@@ -139,12 +139,29 @@ export function usePublications() {
   const createPublication = async (data: Partial<CMSPublication>): Promise<CMSPublication | null> => {
     if (!tenant || !isAuthenticated) return null;
 
+    // Mapper les catégories frontend vers backend
+    // Frontend: actualites, evenements, services, annonces, culture
+    // Backend: communique, avis_public, nouvelle, annonce, vie_municipale, culture, education, sport
+    const categoryMap: Record<string, string> = {
+      'post': 'nouvelle',
+      'communique': 'communique',
+      'actualites': 'nouvelle',
+      'evenements': 'vie_municipale',  // Les événements comme actualité de vie municipale
+      'services': 'avis_public',       // Services comme avis public
+      'annonces': 'annonce',           // annonces (avec s) -> annonce
+      'annonce': 'annonce',
+      'culture': 'culture',
+      'sport': 'sport',
+      'education': 'education',
+    };
+    const backendCategory = categoryMap[data.category || 'post'] || 'nouvelle';
+
     try {
       const actualite = await actualiteService.create({
-        titre: data.title,
-        contenu: data.content,
-        resume: data.content?.substring(0, 200),
-        categorie: data.category,
+        titre: data.title || 'Nouvelle publication',
+        contenu: data.content || 'Contenu de la publication',
+        resume: data.content?.substring(0, 200) || '',
+        categorie: backendCategory,
         est_publie: data.status === 'published',
         image_principale: data.image,
         commune: tenant.id,
@@ -246,14 +263,15 @@ export function useEvents() {
 
     try {
       const evenement = await evenementService.create({
-        nom: data.title,
-        description: data.description,
+        nom: data.title || 'Nouvel événement',
+        description: data.description || 'Description de l\'événement',
         date: data.date,
         heure_debut: data.startTime,
-        heure_fin: data.endTime,
-        lieu: data.location,
-        categorie: data.category,
+        heure_fin: data.endTime || data.startTime,
+        lieu: data.location || 'À définir',
+        categorie: data.category || 'autre',
         commune: tenant.id,
+        est_public: true,
       });
       
       const newEvent = mapEvenementToCMSEvent(evenement);
@@ -335,29 +353,28 @@ export function useCMSStats() {
     try {
       const communeStats = await statsService.getCommune(tenantSlug);
       
+      // Utiliser les vraies données de l'API
       setStats({
-        totalVisitors: 3842, // TODO: Add to API
-        totalPageViews: 12584, // TODO: Add to API
-        totalMessages: 47, // TODO: Add to API
-        totalPublications: communeStats.actualites || 0,
-        visitorsTrend: 12.5, // TODO: Calculate from historical data
-        pageViewsTrend: 8.2,
-        messagesTrend: 23.1,
-        publicationsTrend: -2.4,
+        actualites: communeStats.actualites || 0,
+        evenements: communeStats.evenements || 0,
+        projets: communeStats.projets || 0,
+        projetsEnCours: communeStats.projets_en_cours || 0,
+        budgetTotalProjets: parseFloat(communeStats.budget_total_projets?.toString() || '0'),
+        services: communeStats.services || 0,
+        documentsOfficiels: communeStats.documents_officiels || 0,
       });
     } catch (err) {
       console.error('Erreur chargement statistiques:', err);
       setError('Impossible de charger les statistiques');
       // Set default stats on error
       setStats({
-        totalVisitors: 0,
-        totalPageViews: 0,
-        totalMessages: 0,
-        totalPublications: 0,
-        visitorsTrend: 0,
-        pageViewsTrend: 0,
-        messagesTrend: 0,
-        publicationsTrend: 0,
+        actualites: 0,
+        evenements: 0,
+        projets: 0,
+        projetsEnCours: 0,
+        budgetTotalProjets: 0,
+        services: 0,
+        documentsOfficiels: 0,
       });
     } finally {
       setLoading(false);

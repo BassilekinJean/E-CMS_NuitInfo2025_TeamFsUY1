@@ -1,5 +1,5 @@
 // ComponentsCms/Parametres.tsx
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   Settings,
   User,
@@ -8,11 +8,109 @@ import {
   Palette,
   Globe,
   Save,
-  Camera
+  Camera,
+  Loader2,
+  AlertCircle,
+  CheckCircle
 } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
+import { useTenant } from '../contexts/TenantContext';
+import { authService } from '../api/services';
 
 export const Parametres = () => {
   const [activeTab, setActiveTab] = useState('profile');
+  const { user, isAuthenticated } = useAuth();
+  const { tenant, tenantSlug } = useTenant();
+  
+  // États du formulaire
+  const [profileForm, setProfileForm] = useState({
+    prenom: '',
+    nom: '',
+    email: '',
+    fonction: '',
+    biographie: '',
+  });
+  
+  const [passwordForm, setPasswordForm] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  });
+  
+  const [siteForm, setSiteForm] = useState({
+    nomCommune: '',
+    slogan: '',
+    description: '',
+  });
+  
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  
+  // Charger les données utilisateur
+  useEffect(() => {
+    if (user) {
+      const nameParts = user.nom?.split(' ') || [''];
+      setProfileForm({
+        prenom: nameParts[0] || '',
+        nom: nameParts.slice(1).join(' ') || '',
+        email: user.email || '',
+        fonction: user.role_display || user.role || '',
+        biographie: '',
+      });
+    }
+  }, [user]);
+  
+  // Charger les données du tenant
+  useEffect(() => {
+    if (tenant) {
+      setSiteForm({
+        nomCommune: tenant.nom || '',
+        slogan: tenant.mot_du_maire?.substring(0, 100) || 'Une commune au service de ses citoyens',
+        description: tenant.description || '',
+      });
+    }
+  }, [tenant]);
+  
+  const handleSaveProfile = async () => {
+    setSaving(true);
+    setMessage(null);
+    try {
+      await authService.updateProfile({
+        nom: `${profileForm.prenom} ${profileForm.nom}`.trim(),
+        email: profileForm.email,
+      });
+      setMessage({ type: 'success', text: 'Profil mis à jour avec succès' });
+    } catch (error) {
+      console.error('Erreur mise à jour profil:', error);
+      setMessage({ type: 'error', text: 'Erreur lors de la mise à jour du profil' });
+    } finally {
+      setSaving(false);
+    }
+  };
+  
+  const handleChangePassword = async () => {
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      setMessage({ type: 'error', text: 'Les mots de passe ne correspondent pas' });
+      return;
+    }
+    
+    setSaving(true);
+    setMessage(null);
+    try {
+      await authService.changePassword(
+        passwordForm.currentPassword,
+        passwordForm.newPassword,
+        passwordForm.confirmPassword
+      );
+      setMessage({ type: 'success', text: 'Mot de passe modifié avec succès' });
+      setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+    } catch (error) {
+      console.error('Erreur changement mot de passe:', error);
+      setMessage({ type: 'error', text: 'Erreur lors du changement de mot de passe' });
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const tabs = [
     { id: 'profile', label: 'Profil', icon: User },
@@ -73,15 +171,39 @@ export const Parametres = () => {
             <div className="max-w-2xl">
               <h2 className="text-xl font-bold text-slate-800 mb-8">Informations du profil</h2>
               
+              {/* Message de feedback */}
+              {message && (
+                <div className={`mb-6 p-4 rounded-xl flex items-center gap-3 ${
+                  message.type === 'success' 
+                    ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' 
+                    : 'bg-rose-50 text-rose-700 border border-rose-200'
+                }`}>
+                  {message.type === 'success' ? (
+                    <CheckCircle className="h-5 w-5" />
+                  ) : (
+                    <AlertCircle className="h-5 w-5" />
+                  )}
+                  {message.text}
+                </div>
+              )}
+              
               {/* Avatar */}
               <div className="mb-10 p-6 bg-white/80 backdrop-blur-sm rounded-3xl border border-slate-100 shadow-sm">
                 <div className="flex items-center gap-5">
                   <div className="relative">
-                    <img
-                      src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
-                      alt="Profile"
-                      className="h-24 w-24 rounded-2xl object-cover ring-4 ring-white shadow-lg"
-                    />
+                    {user?.photo ? (
+                      <img
+                        src={user.photo}
+                        alt="Profile"
+                        className="h-24 w-24 rounded-2xl object-cover ring-4 ring-white shadow-lg"
+                      />
+                    ) : (
+                      <div className="h-24 w-24 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center ring-4 ring-white shadow-lg">
+                        <span className="text-3xl font-bold text-white">
+                          {profileForm.prenom?.[0]?.toUpperCase() || 'U'}
+                        </span>
+                      </div>
+                    )}
                     <button className="absolute -bottom-2 -right-2 p-2.5 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300">
                       <Camera className="h-4 w-4" />
                     </button>
@@ -100,7 +222,8 @@ export const Parametres = () => {
                     <label className="block text-sm font-semibold text-slate-700 mb-2">Prénom</label>
                     <input
                       type="text"
-                      defaultValue="Jean"
+                      value={profileForm.prenom}
+                      onChange={(e) => setProfileForm({ ...profileForm, prenom: e.target.value })}
                       className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all duration-200 bg-white/50"
                     />
                   </div>
@@ -108,7 +231,8 @@ export const Parametres = () => {
                     <label className="block text-sm font-semibold text-slate-700 mb-2">Nom</label>
                     <input
                       type="text"
-                      defaultValue="Dupont"
+                      value={profileForm.nom}
+                      onChange={(e) => setProfileForm({ ...profileForm, nom: e.target.value })}
                       className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all duration-200 bg-white/50"
                     />
                   </div>
@@ -118,7 +242,8 @@ export const Parametres = () => {
                   <label className="block text-sm font-semibold text-slate-700 mb-2">Email</label>
                   <input
                     type="email"
-                    defaultValue="maire@commune.fr"
+                    value={profileForm.email}
+                    onChange={(e) => setProfileForm({ ...profileForm, email: e.target.value })}
                     className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all duration-200 bg-white/50"
                   />
                 </div>
@@ -127,8 +252,10 @@ export const Parametres = () => {
                   <label className="block text-sm font-semibold text-slate-700 mb-2">Fonction</label>
                   <input
                     type="text"
-                    defaultValue="Maire"
-                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all duration-200 bg-white/50"
+                    value={profileForm.fonction}
+                    onChange={(e) => setProfileForm({ ...profileForm, fonction: e.target.value })}
+                    disabled
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-500 cursor-not-allowed"
                   />
                 </div>
 
@@ -136,14 +263,24 @@ export const Parametres = () => {
                   <label className="block text-sm font-semibold text-slate-700 mb-2">Biographie</label>
                   <textarea
                     rows={4}
-                    defaultValue="Maire de la commune depuis 2020..."
+                    value={profileForm.biographie}
+                    onChange={(e) => setProfileForm({ ...profileForm, biographie: e.target.value })}
+                    placeholder="Décrivez-vous..."
                     className="w-full px-4 py-3 border border-slate-200 rounded-xl resize-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all duration-200 bg-white/50"
                   />
                 </div>
 
                 <div className="pt-4">
-                  <button className="bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white px-6 py-3 rounded-xl font-medium transition-all duration-300 flex items-center gap-2 shadow-lg shadow-blue-500/25 hover:shadow-xl hover:scale-[1.02]">
-                    <Save className="h-5 w-5" />
+                  <button 
+                    onClick={handleSaveProfile}
+                    disabled={saving}
+                    className="bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white px-6 py-3 rounded-xl font-medium transition-all duration-300 flex items-center gap-2 shadow-lg shadow-blue-500/25 hover:shadow-xl hover:scale-[1.02] disabled:opacity-50"
+                  >
+                    {saving ? (
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                    ) : (
+                      <Save className="h-5 w-5" />
+                    )}
                     Enregistrer les modifications
                   </button>
                 </div>
@@ -203,6 +340,22 @@ export const Parametres = () => {
             <div className="max-w-2xl">
               <h2 className="text-xl font-bold text-slate-800 mb-8">Sécurité du compte</h2>
               
+              {/* Message de feedback */}
+              {message && (
+                <div className={`mb-6 p-4 rounded-xl flex items-center gap-3 ${
+                  message.type === 'success' 
+                    ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' 
+                    : 'bg-rose-50 text-rose-700 border border-rose-200'
+                }`}>
+                  {message.type === 'success' ? (
+                    <CheckCircle className="h-5 w-5" />
+                  ) : (
+                    <AlertCircle className="h-5 w-5" />
+                  )}
+                  {message.text}
+                </div>
+              )}
+              
               <div className="space-y-6">
                 <div className="bg-white/80 backdrop-blur-sm rounded-3xl border border-slate-100 shadow-sm p-6">
                   <h3 className="font-semibold text-slate-800 mb-6 flex items-center gap-2">
@@ -214,6 +367,8 @@ export const Parametres = () => {
                       <label className="block text-sm font-semibold text-slate-700 mb-2">Mot de passe actuel</label>
                       <input
                         type="password"
+                        value={passwordForm.currentPassword}
+                        onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
                         className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all duration-200 bg-white/50"
                       />
                     </div>
@@ -221,6 +376,8 @@ export const Parametres = () => {
                       <label className="block text-sm font-semibold text-slate-700 mb-2">Nouveau mot de passe</label>
                       <input
                         type="password"
+                        value={passwordForm.newPassword}
+                        onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
                         className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all duration-200 bg-white/50"
                       />
                     </div>
@@ -228,6 +385,8 @@ export const Parametres = () => {
                       <label className="block text-sm font-semibold text-slate-700 mb-2">Confirmer le mot de passe</label>
                       <input
                         type="password"
+                        value={passwordForm.confirmPassword}
+                        onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
                         className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all duration-200 bg-white/50"
                       />
                     </div>
@@ -235,8 +394,16 @@ export const Parametres = () => {
                 </div>
 
                 <div className="pt-2">
-                  <button className="bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white px-6 py-3 rounded-xl font-medium transition-all duration-300 flex items-center gap-2 shadow-lg shadow-blue-500/25 hover:shadow-xl hover:scale-[1.02]">
-                    <Save className="h-5 w-5" />
+                  <button 
+                    onClick={handleChangePassword}
+                    disabled={saving || !passwordForm.currentPassword || !passwordForm.newPassword}
+                    className="bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white px-6 py-3 rounded-xl font-medium transition-all duration-300 flex items-center gap-2 shadow-lg shadow-blue-500/25 hover:shadow-xl hover:scale-[1.02] disabled:opacity-50"
+                  >
+                    {saving ? (
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                    ) : (
+                      <Save className="h-5 w-5" />
+                    )}
                     Mettre à jour le mot de passe
                   </button>
                 </div>

@@ -17,7 +17,7 @@ from drf_spectacular.views import (
 
 from .views import (
     # Auth views
-    RegisterView, ProfileView, ChangePasswordView,
+    CustomLoginView, RegisterView, ProfileView, ChangePasswordView,
     PasswordResetRequestView, PasswordResetConfirmView,
     
     # Core viewsets
@@ -100,7 +100,7 @@ app_name = 'api'
 urlpatterns = [
     # ===== AUTHENTIFICATION =====
     path('auth/register/', RegisterView.as_view(), name='register'),
-    path('auth/login/', TokenObtainPairView.as_view(), name='login'),
+    path('auth/login/', CustomLoginView.as_view(), name='login'),
     path('auth/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('auth/logout/', TokenBlacklistView.as_view(), name='logout'),
     path('auth/profile/', ProfileView.as_view(), name='profile'),

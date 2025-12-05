@@ -59,7 +59,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
   
   const login = async (email: string, password: string) => {
     const response = await authService.login(email, password);
-    setUser(response.user);
+    if (response.user) {
+      setUser(response.user);
+    } else {
+      // Si l'utilisateur n'est pas dans la réponse, le charger séparément
+      const profile = await authService.getProfile();
+      setUser(profile);
+    }
   };
   
   const logout = async () => {

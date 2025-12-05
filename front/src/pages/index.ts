@@ -3,6 +3,7 @@
  */
 
 export { TenantHomePage } from './TenantHomePage';
+export { PublicSitePage } from './PublicSitePage';
 export { ActualitesPage } from './ActualitesPage';
 export { ActualiteDetailPage } from './ActualiteDetailPage';
 export { EvenementsPage } from './EvenementsPage';

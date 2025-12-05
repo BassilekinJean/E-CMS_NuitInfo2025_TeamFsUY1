@@ -25,9 +25,12 @@ import {
   Image,
   X,
   Calendar,
-  Loader2
+  Loader2,
+  AlertCircle
 } from 'lucide-react';
 import { useOutletContext } from 'react-router-dom';
+import { usePublications, useEvents } from '../hooks/useCMSData';
+import { useTenant } from '../contexts/TenantContext';
 
 interface DashboardContextType {
   setIsSidebarOpen: (isOpen: boolean) => void;
@@ -526,54 +529,91 @@ const SitePreview = ({
 
 const SiteWebEditor = () => {
   const { setIsSidebarOpen } = useOutletContext<DashboardContextType>();
-  const [config, setConfig] = useState<SiteConfig>(defaultConfig);
+  const { tenant, tenantSlug } = useTenant();
+  
+  // Hooks pour charger les données API
+  const { publications: apiPublications, loading: pubLoading } = usePublications();
+  const { events: apiEvents, loading: eventsLoading } = useEvents();
+  
+  const [config, setConfig] = useState<SiteConfig>(() => ({
+    ...defaultConfig,
+    general: {
+      ...defaultConfig.general,
+      nomMairie: tenant?.nom || defaultConfig.general.nomMairie,
+    },
+    contact: {
+      ...defaultConfig.contact,
+      telephone: tenant?.telephone || defaultConfig.contact.telephone,
+      email: tenant?.email || defaultConfig.contact.email,
+      adresse: tenant?.adresse || defaultConfig.contact.adresse,
+    },
+  }));
+  
   const [activeTab, setActiveTab] = useState<'general' | 'contact' | 'couleurs' | 'sections'>('general');
   const [previewDevice, setPreviewDevice] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
   const [showPreview, setShowPreview] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [publications, setPublications] = useState<Publication[]>([]);
-  const [events, setEvents] = useState<Event[]>([]);
-  const [loading, setLoading] = useState(true);
+  
+  // Transformer les publications API en format attendu par SitePreview
+  const publications: Publication[] = apiPublications.map(pub => ({
+    id: pub.id,
+    title: pub.title,
+    content: pub.content,
+    category: pub.category,
+    createdAt: pub.createdAt,
+    author: pub.author,
+    image: pub.image,
+  }));
+  
+  // Transformer les événements API en format attendu par SitePreview
+  const events: Event[] = apiEvents.map(evt => ({
+    id: evt.id,
+    title: evt.title,
+    date: evt.date,
+    startTime: evt.startTime,
+    endTime: evt.endTime,
+    location: evt.location,
+    category: evt.category,
+  }));
+  
+  const loading = pubLoading || eventsLoading;
 
-  // Charger les données depuis le backend
+  // Mettre à jour la config quand le tenant change
   useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        // TODO: Remplacer par les vrais appels API
-        // const [pubResponse, eventResponse] = await Promise.all([
-        //   fetch('/api/publications'),
-        //   fetch('/api/events')
-        // ]);
-        // setPublications(await pubResponse.json());
-        // setEvents(await eventResponse.json());
-        
-        // Pour la démo, on simule des données vides
-        // Les vraies données viendront du backend
-        setPublications([]);
-        setEvents([]);
-      } catch (error) {
-        console.error('Erreur chargement données:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []);
+    if (tenant) {
+      setConfig(prev => ({
+        ...prev,
+        general: {
+          ...prev.general,
+          nomMairie: tenant.nom || prev.general.nomMairie,
+        },
+        contact: {
+          ...prev.contact,
+          telephone: tenant.telephone || prev.contact.telephone,
+          email: tenant.email || prev.contact.email,
+          adresse: tenant.adresse || prev.contact.adresse,
+        },
+      }));
+    }
+  }, [tenant]);
 
   const handleSave = async () => {
     setSaving(true);
     try {
-      // TODO: Appel API pour sauvegarder la configuration
+      // Sauvegarder dans localStorage pour que la page publique puisse y accéder
+      if (tenantSlug) {
+        localStorage.setItem(`site_config_${tenantSlug}`, JSON.stringify(config));
+      }
+      
+      // TODO: Appel API pour sauvegarder la configuration en base de données
       // await fetch('/api/site-config', {
       //   method: 'POST',
       //   headers: { 'Content-Type': 'application/json' },
       //   body: JSON.stringify(config)
       // });
       
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      alert('Configuration sauvegardée avec succès !');
+      await new Promise(resolve => setTimeout(resolve, 500));
+      alert('Configuration sauvegardée ! Les modifications sont maintenant visibles sur le site public.');
     } catch (error) {
       console.error('Erreur sauvegarde:', error);
       alert('Erreur lors de la sauvegarde');
@@ -581,6 +621,21 @@ const SiteWebEditor = () => {
       setSaving(false);
     }
   };
+  
+  // Charger la configuration depuis localStorage au démarrage
+  useEffect(() => {
+    if (tenantSlug) {
+      const savedConfig = localStorage.getItem(`site_config_${tenantSlug}`);
+      if (savedConfig) {
+        try {
+          const parsed = JSON.parse(savedConfig);
+          setConfig(prev => ({ ...prev, ...parsed }));
+        } catch (e) {
+          console.error('Erreur chargement config:', e);
+        }
+      }
+    }
+  }, [tenantSlug]);
 
   const tabs = [
     { id: 'general' as const, label: 'Général', icon: Globe },
@@ -588,6 +643,21 @@ const SiteWebEditor = () => {
     { id: 'couleurs' as const, label: 'Couleurs', icon: Palette },
     { id: 'sections' as const, label: 'Sections', icon: Layers },
   ];
+
+  // Affichage si pas de tenant
+  if (!tenantSlug) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20 flex items-center justify-center">
+        <div className="text-center p-8 bg-white rounded-3xl shadow-lg max-w-md mx-4">
+          <AlertCircle className="w-16 h-16 mx-auto text-amber-500 mb-4" />
+          <h2 className="text-xl font-bold text-slate-800 mb-2">Commune non détectée</h2>
+          <p className="text-slate-500">
+            Veuillez accéder au CMS via un sous-domaine de commune (ex: yaounde.localhost:5173)
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20">
