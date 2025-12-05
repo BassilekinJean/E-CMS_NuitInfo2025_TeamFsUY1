@@ -25,6 +25,14 @@ import {
   SignalementPage
 } from './pages';
 
+// CMS Components
+import { MayorDashboard } from '../cms_components/MayorDashboard';
+import { DashboardContent } from '../cms_components/DashboardContent';
+import MayorSchedule from '../cms_components/Evenement';
+import { Publications } from '../cms_components/Publications';
+import { Parametres } from '../cms_components/Parametres';
+import SiteWebEditor from '../cms_components/SiteWebEditor';
+
 // Wrapper component for Login with navigation
 function LoginPage() {
   const navigate = useNavigate();
@@ -176,7 +184,49 @@ const App: React.FC = () => {
       <Router>
         <AuthProvider>
           <TenantProvider>
-            <AppRoutes />
+            <Routes>
+              {/* Landing Page */}
+              <Route path="/" element={<LandingPage />} />
+              
+              {/* Auth Routes */}
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+              <Route path="/verify-otp" element={<OTPVerificationPage />} />
+              <Route path="/reset-password" element={<ResetPasswordPage />} />
+              <Route path="/verify-email" element={<EmailVerificationPage />} />
+              <Route path="/contact" element={<LandingPage />} />
+              <Route path="/features" element={<LandingPage />} />
+              
+              {/* CMS Routes - Mayor Dashboard */}
+              <Route path="/cms/mayor-dashboard" element={<MayorDashboard />}>
+                <Route index element={<DashboardContent />} />
+                <Route path="publications" element={<Publications />} />
+                <Route path="evenements" element={<MayorSchedule />} />
+                <Route path="site-web" element={<SiteWebEditor />} />
+                <Route path="parametres" element={<Parametres />} />
+              </Route>
+
+              {/* Tenant Routes */}
+              <Route path="/tenant" element={<TenantHomePage />} />
+              <Route path="/actualites" element={<ActualitesPage />} />
+              <Route path="/actualites/:slug" element={<ActualiteDetailPage />} />
+              <Route path="/evenements" element={<EvenementsPage />} />
+              <Route path="/agenda" element={<EvenementsPage />} />
+              <Route path="/projets" element={<ProjetsPage />} />
+              <Route path="/projets/:slug" element={<ProjetDetailPage />} />
+              <Route path="/transparence" element={<TransparencePage />} />
+              <Route path="/documents" element={<TransparencePage />} />
+              <Route path="/services" element={<ServicesPage />} />
+              <Route path="/suivi-demarche" element={<SuiviDemarchePage />} />
+              <Route path="/signalement" element={<SignalementPage />} />
+              <Route path="/suivi-signalement" element={<SuiviSignalementPage />} />
+              <Route path="/contact-tenant" element={<ContactPage />} />
+              <Route path="/faq" element={<FAQPage />} />
+              <Route path="/pages/:slug" element={<PageCMSPage />} />
+
+              {/* Fallback route */}
+              <Route path="*" element={<LandingPage />} />
+            </Routes>
           </TenantProvider>
         </AuthProvider>
       </Router>
