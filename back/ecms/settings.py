@@ -47,13 +47,22 @@ INSTALLED_APPS = [
     'drf_spectacular',
     'drf_yasg',
     
-    # E-CMS Apps
+    # E-CMS Apps - Core
     'apps.users',
     'apps.mairies',
     'apps.demarches',
     'apps.documents',
     'apps.projets',
     'apps.evenements',
+    
+    # E-CMS Apps - Frontend aligned (v1)
+    'apps.dashboard',
+    'apps.publications',
+    'apps.messages_app',
+    'apps.website',
+    'apps.notifications',
+    'apps.media',
+    'apps.settings_app',
 ]
 
 MIDDLEWARE = [
