@@ -248,95 +248,109 @@ export function Login({ onForgotPassword, onBackToHome }: LoginProps) {
         </div>
       </div>
 
-      {/* Right Side - Image with Cameroon Flag Colors Overlay (Hidden on mobile) */}
+      {/* Right Side - Professional Cameroon-themed Design (Hidden on mobile) */}
       <div className="hidden lg:flex lg:flex-1 relative overflow-hidden">
-        {/* Background Image */}
+        {/* Background Image with professional overlay */}
         <div className="absolute inset-0">
           <img 
             src="https://images.unsplash.com/photo-1577495508048-b635879837f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80"
             alt="Modern African City Hall"
             className="w-full h-full object-cover"
           />
-          {/* Cameroon Flag Colors Overlay - Three vertical stripes */}
-          <div className="absolute inset-0 flex">
-            <div className="flex-1 bg-green-600/70"></div>
-            <div className="flex-1 bg-red-600/70"></div>
-            <div className="flex-1 bg-yellow-500/70"></div>
+          {/* Professional gradient overlay with Cameroon colors */}
+          <div className="absolute inset-0 bg-gradient-to-br from-green-900/90 via-green-800/85 to-yellow-700/80"></div>
+          {/* Subtle accent line at bottom with flag colors */}
+          <div className="absolute bottom-0 left-0 right-0 h-1.5 flex">
+            <div className="flex-1 bg-green-500"></div>
+            <div className="flex-1 bg-red-500"></div>
+            <div className="flex-1 bg-yellow-400"></div>
           </div>
-          {/* Additional gradient for better text readability */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/30"></div>
         </div>
 
-        {/* Star in the center (like Cameroon flag) */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <svg 
-            className="w-64 h-64 text-yellow-400/30" 
-            viewBox="0 0 24 24" 
-            fill="currentColor"
-          >
-            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-          </svg>
+        {/* Decorative elements */}
+        <div className="absolute inset-0 pointer-events-none">
+          {/* Subtle geometric pattern */}
+          <div className="absolute top-0 right-0 w-96 h-96 opacity-10">
+            <svg viewBox="0 0 200 200" className="w-full h-full">
+              <defs>
+                <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+                  <path d="M 20 0 L 0 0 0 20" fill="none" stroke="white" strokeWidth="0.5"/>
+                </pattern>
+              </defs>
+              <rect width="200" height="200" fill="url(#grid)" />
+            </svg>
+          </div>
+          {/* Subtle star accent */}
+          <div className="absolute top-8 right-8">
+            <svg className="w-12 h-12 text-yellow-400/40" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+            </svg>
+          </div>
         </div>
 
         {/* Content */}
         <div className="relative z-10 p-12 flex items-center justify-center">
           <div className="max-w-lg text-white space-y-8">
             <div className="space-y-4">
+              <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full border border-white/20">
+                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                <span className="text-sm text-white/90">Plateforme sécurisée</span>
+              </div>
               <h2 className="text-3xl font-bold text-white">
                 Gérez votre Mairie en toute simplicité
               </h2>
-              <p className="text-lg text-white/90">
+              <p className="text-lg text-white/80">
                 Accédez à votre tableau de bord pour publier des actualités, gérer les événements, 
                 et communiquer efficacement avec vos citoyens.
               </p>
             </div>
 
             {/* Features List */}
-            <div className="space-y-4">
+            <div className="space-y-3">
               {features.map((feature, index) => (
                 <div 
                   key={index} 
-                  className="flex items-start gap-4 bg-white/15 backdrop-blur-md p-4 rounded-xl border border-white/30 hover:bg-white/25 transition-all"
+                  className="flex items-center gap-4 bg-white/10 backdrop-blur-sm p-4 rounded-xl border border-white/10 hover:bg-white/15 hover:border-white/20 transition-all group"
                 >
-                  <div className="bg-white/25 p-3 rounded-lg">
-                    <feature.icon className="h-6 w-6 text-white" />
+                  <div className="bg-gradient-to-br from-green-500 to-yellow-500 p-2.5 rounded-lg group-hover:scale-110 transition-transform">
+                    <feature.icon className="h-5 w-5 text-white" />
                   </div>
                   <div>
-                    <div className="font-semibold text-white mb-1">{feature.title}</div>
-                    <p className="text-white/80">{feature.description}</p>
+                    <div className="font-semibold text-white">{feature.title}</div>
+                    <p className="text-white/70 text-sm">{feature.description}</p>
                   </div>
                 </div>
               ))}
             </div>
 
             {/* Stats */}
-            <div className="grid grid-cols-3 gap-4 pt-8 border-t border-white/30">
+            <div className="grid grid-cols-3 gap-4 pt-6 border-t border-white/20">
               <div className="text-center">
                 <div className="text-2xl font-bold text-white mb-1">50+</div>
-                <p className="text-white/80">Mairies</p>
+                <p className="text-white/70 text-sm">Mairies</p>
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold text-white mb-1">99.9%</div>
-                <p className="text-white/80">Uptime</p>
+                <p className="text-white/70 text-sm">Uptime</p>
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold text-white mb-1">24/7</div>
-                <p className="text-white/80">Support</p>
+                <p className="text-white/70 text-sm">Support</p>
               </div>
             </div>
 
             {/* Testimonial */}
-            <div className="bg-white/15 backdrop-blur-md p-6 rounded-xl border border-white/30">
+            <div className="bg-white/10 backdrop-blur-sm p-5 rounded-xl border border-white/10">
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-12 h-12 bg-white/25 rounded-full flex items-center justify-center">
-                  <Users className="h-6 w-6 text-white" />
+                <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-yellow-500 rounded-full flex items-center justify-center">
+                  <span className="text-white font-bold text-sm">MK</span>
                 </div>
                 <div>
-                  <div className="font-semibold text-white">Marie Kouadio</div>
-                  <p className="text-white/80">Secrétaire Générale</p>
+                  <div className="font-semibold text-white text-sm">Marie Kouadio</div>
+                  <p className="text-white/60 text-xs">Secrétaire Générale</p>
                 </div>
               </div>
-              <p className="text-white/90 italic">
+              <p className="text-white/80 text-sm italic">
                 "CameroonCMS a transformé notre communication avec les citoyens. 
                 Interface simple et efficace!"
               </p>
