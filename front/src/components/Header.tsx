@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { ArrowRight, Building2, Globe, Users, ChevronLeft, ChevronRight } from 'lucide-react';
 
 export function Header() {
