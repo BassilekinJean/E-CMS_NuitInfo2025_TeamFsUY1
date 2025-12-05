@@ -99,43 +99,32 @@ class DemandeOTPSerializer(serializers.Serializer):
         return value.lower()
 
 
-class VerifierOTPSerializer(serializers.Serializer):
+class VerifyOTPSerializer(serializers.Serializer):
     """Serializer pour vérifier le code OTP"""
     
     email = serializers.EmailField(required=True)
-    code_otp = serializers.CharField(required=True, min_length=6, max_length=6)
+    otp_code = serializers.CharField(required=True, min_length=6, max_length=6)
     
-    def validate_code_otp(self, value):
+    def validate_otp_code(self, value):
         if not value.isdigit():
             raise serializers.ValidationError("Le code OTP doit contenir uniquement des chiffres.")
         return value
 
 
-class ResetPasswordAvecTokenSerializer(serializers.Serializer):
+class ResetPasswordSerializer(serializers.Serializer):
     """Serializer pour réinitialiser le mot de passe après validation OTP"""
     
-    token = serializers.CharField(required=True)
-    nouveau_mot_de_passe = serializers.CharField(required=True, validators=[validate_password])
-    confirmer_mot_de_passe = serializers.CharField(required=True)
+    reset_permit = serializers.CharField(required=True)
+    new_password = serializers.CharField(required=True, validators=[validate_password])
+    confirm_password = serializers.CharField(required=True)
     
     def validate(self, attrs):
-        if attrs['nouveau_mot_de_passe'] != attrs['confirmer_mot_de_passe']:
+        if attrs['new_password'] != attrs['confirm_password']:
             raise serializers.ValidationError({
-                'nouveau_mot_de_passe': 'Les mots de passe ne correspondent pas.'
+                'new_password': 'Les mots de passe ne correspondent pas.'
             })
         return attrs
 
-
-class VerifierEmailSerializer(serializers.Serializer):
-    """Serializer pour vérifier l'email"""
-    
-    token = serializers.CharField(required=True)
-
-
-class RenvoiVerificationEmailSerializer(serializers.Serializer):
-    """Serializer pour renvoyer l'email de vérification"""
-    
-    email = serializers.EmailField(required=True)
 
 
 class CreerAgentSerializer(serializers.ModelSerializer):

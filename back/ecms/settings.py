@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'corsheaders',
     'drf_spectacular',
+    'drf_yasg',
     
     # E-CMS Apps
     'apps.users',
@@ -213,28 +214,7 @@ OTP_EXPIRY_MINUTES = 6  # Code OTP expire après 6 minutes
 # ===== API Documentation (drf-spectacular) =====
 SPECTACULAR_SETTINGS = {
     'TITLE': 'E-CMS API',
-    'DESCRIPTION': '''
-## 🏛️ E-CMS - Système de Gestion de Contenu pour Mairies
-
-API REST complète pour la gestion des services municipaux camerounais.
-
-### 🔐 Authentification
-L'API utilise **JWT (JSON Web Tokens)** pour l'authentification.
-- Obtenez un token via `/api/users/connexion/`
-- Incluez le header: `Authorization: Bearer <votre_token>`
-
-### 📧 Vérification Email
-- À l'inscription, un email de vérification est envoyé
-- Utilisez `/api/users/email/verifier/` avec le token reçu
-
-### 🔑 Réinitialisation Mot de Passe
-- Demandez un reset via `/api/users/password/reset/`
-- Confirmez avec `/api/users/password/reset/confirmer/`
-
-### 👥 Rôles Utilisateurs
-- **Agent Communal** : Gestion d'une mairie
-- **Admin National** : Super administrateur
-    ''',
+    'DESCRIPTION': 'API pour le Système de Gestion de Contenu pour Mairies (E-CMS)',
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
     'COMPONENT_SPLIT_REQUEST': True,

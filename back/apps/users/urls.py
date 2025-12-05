@@ -1,40 +1,33 @@
 from django.urls import path
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from .views import (
-    InscriptionView, DeconnexionView,
-    ProfilUtilisateurView, ProfilAgentView,
-    ChangerMotDePasseView,
+    RegisterView, LoginView, TokenRefreshView, LogoutView,
+    EmailVerifySendView, EmailVerifyConfirmView,
+    PasswordForgotView, PasswordResetView,
+    ProfileRetrieveUpdateView,
+    # Admin management
     ListeUtilisateursView, DetailUtilisateurView,
     CreerAgentView, ActiverDesactiverUtilisateurView,
-    # Authentification avancée
-    VerifierEmailView, RenvoiVerificationEmailView,
-    DemandeOTPView, VerifierOTPView, ResetPasswordView,
-    VerifierTokenView
 )
 
 urlpatterns = [
-    # Authentification
-    path('inscription/', InscriptionView.as_view(), name='inscription'),
-    path('connexion/', TokenObtainPairView.as_view(), name='connexion'),
+    # ===== Authentification =====
+    path('register/', RegisterView.as_view(), name='register'),
+    path('login/', LoginView.as_view(), name='login'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-    path('deconnexion/', DeconnexionView.as_view(), name='deconnexion'),
+    path('logout/', LogoutView.as_view(), name='logout'),
     
-    # Vérification email
-    path('email/verifier/', VerifierEmailView.as_view(), name='verifier_email'),
-    path('email/renvoyer-verification/', RenvoiVerificationEmailView.as_view(), name='renvoyer_verification'),
+    # ===== Email Verification (OTP) =====
+    path('email/verify/send/', EmailVerifySendView.as_view(), name='email_verify_send'),
+    path('email/verify/confirm/', EmailVerifyConfirmView.as_view(), name='email_verify_confirm'),
     
-    # Réinitialisation mot de passe (flux OTP)
-    path('password/otp/demander/', DemandeOTPView.as_view(), name='demander_otp'),
-    path('password/otp/verifier/', VerifierOTPView.as_view(), name='verifier_otp'),
-    path('password/reset/', ResetPasswordView.as_view(), name='reset_password'),
-    path('token/verifier/<str:token>/', VerifierTokenView.as_view(), name='verifier_token'),
+    # ===== Password Reset (OTP) =====
+    path('password/forgot/', PasswordForgotView.as_view(), name='password_forgot'),
+    path('password/reset/', PasswordResetView.as_view(), name='password_reset'),
     
-    # Profil utilisateur connecté
-    path('profil/', ProfilUtilisateurView.as_view(), name='profil'),
-    path('profil/agent/', ProfilAgentView.as_view(), name='profil_agent'),
-    path('profil/mot-de-passe/', ChangerMotDePasseView.as_view(), name='changer_mot_de_passe'),
+    # ===== Profil Utilisateur =====
+    path('profile/', ProfileRetrieveUpdateView.as_view(), name='profile'),
     
-    # Gestion des utilisateurs (admin)
+    # ===== Gestion des utilisateurs (Admin) =====
     path('utilisateurs/', ListeUtilisateursView.as_view(), name='liste_utilisateurs'),
     path('utilisateurs/<int:pk>/', DetailUtilisateurView.as_view(), name='detail_utilisateur'),
     path('utilisateurs/creer-agent/', CreerAgentView.as_view(), name='creer_agent'),

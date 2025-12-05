@@ -40,6 +40,11 @@ class Utilisateur(AbstractBaseUser, PermissionsMixin):
     nom = models.CharField('Nom complet', max_length=255)
     email = models.EmailField('Email', unique=True)
     
+    # Attributs API spec
+    first_name = models.CharField('Prénom', max_length=150, blank=True)
+    last_name = models.CharField('Nom de famille', max_length=150, blank=True)
+    avatar_url = models.CharField('URL Avatar', max_length=500, blank=True)
+    
     # Rôle de l'utilisateur (pas de valeur par défaut)
     role = models.CharField(
         'Rôle',
@@ -57,6 +62,7 @@ class Utilisateur(AbstractBaseUser, PermissionsMixin):
     is_active = models.BooleanField('Actif', default=True)
     is_staff = models.BooleanField('Staff', default=False)
     email_verifie = models.BooleanField('Email vérifié', default=False)
+    is_verified = models.BooleanField('Email vérifié (API)', default=False)
     date_inscription = models.DateTimeField('Date d\'inscription', default=timezone.now)
     derniere_connexion = models.DateTimeField('Dernière connexion', null=True, blank=True)
     
@@ -134,6 +140,7 @@ class TokenVerification(models.Model):
     
     class TypeToken(models.TextChoices):
         EMAIL_VERIFICATION = 'email_verification', 'Vérification Email'
+        EMAIL_VERIFICATION_OTP = 'email_verification_otp', 'Code OTP Email'
         PASSWORD_RESET_OTP = 'password_reset_otp', 'Code OTP Réinitialisation'
     
     utilisateur = models.ForeignKey(
@@ -145,7 +152,7 @@ class TokenVerification(models.Model):
     token = models.CharField('Token/Code OTP', max_length=64, unique=True)
     type_token = models.CharField(
         'Type de token',
-        max_length=20,
+        max_length=30,
         choices=TypeToken.choices
     )
     
