@@ -146,7 +146,7 @@ Thumbs.db
 *.pem
 *.key
 secrets.json
-node_modules/
-../node_modules/
-frontend/node_modules/
-backCMS/node_modules/
+node_modules/*
+../node_modules/*
+frontend/node_modules/*
+backCMS/node_modules/*

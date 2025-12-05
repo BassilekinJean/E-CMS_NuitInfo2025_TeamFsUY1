@@ -96,6 +96,8 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.locale.LocaleMiddleware',
+    # Multi-tenancy: identification commune par sous-domaine
+    'core.middleware.TenantMiddleware',
 ]
 
 # Ajouter middleware Django CMS si disponible
@@ -218,6 +220,7 @@ if DJANGO_CMS_AVAILABLE:
     
     CMS_PERMISSION = True
     CMS_PLACEHOLDER_CONF = {}
+    CMS_CONFIRM_VERSION4 = True  # Confirmation pour Django CMS v4
     
     # EASY THUMBNAILS
     THUMBNAIL_HIGH_RESOLUTION = True
@@ -260,11 +263,35 @@ SIMPLE_JWT = {
 }
 
 # ===== CORS =====
+# Origines autorisées explicitement
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
+    "http://localhost:5173",  # Vite dev server
+    "http://127.0.0.1:5173",
 ]
+
+# Autoriser tous les sous-domaines *.ecms.cm en production
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https?://(\w+\.)?ecms\.cm$",  # *.ecms.cm
+    r"^https?://(\w+\.)?localhost(:\d+)?$",  # *.localhost:port (dev)
+]
+
 CORS_ALLOW_CREDENTIALS = True
+
+# Headers autorisés pour le multi-tenancy
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+    'x-tenant-slug',  # Header optionnel pour forcer le tenant
+]
 
 # ===== EMAIL =====
 EMAIL_BACKEND = os.environ.get(

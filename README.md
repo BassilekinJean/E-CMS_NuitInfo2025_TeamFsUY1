@@ -1,48 +1,174 @@
-# Getting Started with Create React App
+# E-CMS - CMS Multisite pour Communes Camerounaises
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+![E-CMS](https://img.shields.io/badge/E--CMS-Nuit%20Info%202025-blue)
+![Django](https://img.shields.io/badge/Django-4.2-green)
+![React](https://img.shields.io/badge/React-19-61DAFB)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue)
 
-## Available Scripts
+E-CMS est un CMS multisite (multi-tenancy) permettant à chaque commune camerounaise d'avoir son propre espace web administrable, tout en bénéficiant d'une structure et de fonctionnalités standardisées.
 
-In the project directory, you can run:
+## 🌟 Fonctionnalités Clés
 
-### `npm start`
+### Gestion des Contenus (CMS)
+- Interface intuitive pour la publication de pages d'information
+- Pages: Présentation, Historique, Services, etc.
+- Éditeur WYSIWYG
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+### Diffusion d'Infos & Actualités
+- Publication de communiqués de presse et avis publics
+- Système de newsletter avec abonnement/désabonnement
+- Catégorisation des actualités
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+### Agenda & Événements
+- Calendrier public des réunions et événements culturels
+- Module d'inscription aux événements
+- Prise de rendez-vous en ligne
 
-### `npm test`
+### Transparence & Gouvernance
+- Section projets avec suivi d'avancement et budget
+- Publication des délibérations
+- Documents budgétaires publics
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### Services aux Citoyens
+- Formulaires en ligne pour démarches administratives
+- Signalement de problèmes
+- FAQ et base de connaissances
+- Suivi des demandes par numéro
 
-### `npm run build`
+## 🏗️ Architecture Multi-Tenant
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+Le multi-tenancy fonctionne par **sous-domaine** :
+- `ecms.cm` → Portail national
+- `yaounde.ecms.cm` → Site de la commune de Yaoundé
+- `douala.ecms.cm` → Site de la commune de Douala
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+Chaque commune dispose de :
+- Son propre espace de contenu (actualités, pages, événements)
+- Sa personnalisation visuelle (logo, couleurs, bannière)
+- Ses administrateurs et éditeurs
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## 🚀 Démarrage Rapide
 
-### `npm run eject`
+### Prérequis
+- Python 3.10+
+- Node.js 18+
+- npm ou yarn
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+### Installation
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+```bash
+# Cloner le projet
+git clone https://github.com/votre-repo/E-CMS_NuitInfo2025_TeamFsUY1.git
+cd E-CMS_NuitInfo2025_TeamFsUY1
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+# Lancer l'environnement de développement complet
+./dev.sh
+```
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+Ou manuellement :
 
-## Learn More
+```bash
+# Backend Django
+cd backCMS
+python -m venv venv
+source venv/bin/activate  # Linux/Mac
+pip install -r requirements.txt
+python manage.py migrate
+python manage.py runserver
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+# Frontend React (dans un autre terminal)
+cd front
+npm install
+npm run dev
+```
 
-To learn React, check out the [React documentation](https://reactjs.org/).
-# E-CMS_NuitInfo2025_TeamFsUY1
-# E-CMS_NuitInfo2025_TeamFsUY1
+### URLs en développement
+
+| Service | URL |
+|---------|-----|
+| Portail national | http://localhost:5173 |
+| API Backend | http://localhost:8000/api/v1/ |
+| Documentation API (Swagger) | http://localhost:8000/api/v1/docs/ |
+| Admin Django | http://localhost:8000/admin/ |
+
+### Tester le multi-tenancy localement
+
+1. Ajouter dans `/etc/hosts` (Linux/Mac) ou `C:\Windows\System32\drivers\etc\hosts` (Windows) :
+   ```
+   127.0.0.1 yaounde.localhost
+   127.0.0.1 douala.localhost
+   ```
+
+2. Créer une commune avec le slug `yaounde` via l'admin Django ou l'API
+
+3. Visiter http://yaounde.localhost:5173
+
+## 📁 Structure du Projet
+
+```
+E-CMS_NuitInfo2025_TeamFsUY1/
+├── backCMS/                 # Backend Django
+│   ├── api/                 # API REST (DRF)
+│   ├── core/                # Utilisateurs, Config, Middleware tenant
+│   ├── communes/            # Modèles communes (tenant)
+│   ├── actualites/          # Actualités, Pages CMS, Newsletter
+│   ├── evenements/          # Événements, Inscriptions, RDV
+│   ├── services/            # Formulaires, Démarches, Signalements
+│   ├── transparence/        # Projets, Délibérations, Budgets
+│   └── ecms_config/         # Settings Django
+│
+├── front/                   # Frontend React + TypeScript
+│   ├── src/
+│   │   ├── api/             # Client API, services
+│   │   ├── contexts/        # TenantContext, AuthContext
+│   │   ├── hooks/           # useApi hooks
+│   │   ├── pages/           # Pages tenant (Actualités, Événements...)
+│   │   └── components/      # Composants UI
+│   └── ...
+│
+├── dev.sh                   # Script de développement
+└── README.md
+```
+
+## 🔌 API REST
+
+L'API est documentée via Swagger/OpenAPI : `/api/v1/docs/`
+
+### Endpoints principaux
+
+| Endpoint | Description |
+|----------|-------------|
+| `/api/v1/auth/` | Authentification JWT |
+| `/api/v1/communes/` | Liste et détail des communes |
+| `/api/v1/actualites/` | Actualités |
+| `/api/v1/evenements/` | Événements |
+| `/api/v1/pages/` | Pages CMS |
+| `/api/v1/projets/` | Projets (transparence) |
+| `/api/v1/signalements/` | Signalements citoyens |
+| `/api/v1/newsletter/abonnes/` | Abonnement newsletter |
+| `/api/v1/recherche/` | Recherche globale |
+| `/api/v1/stats/` | Statistiques publiques |
+
+## 🛠️ Technologies
+
+### Backend
+- **Django 4.2** - Framework web Python
+- **Django REST Framework** - API REST
+- **SimpleJWT** - Authentification JWT
+- **drf-spectacular** - Documentation OpenAPI
+
+### Frontend
+- **React 19** - Bibliothèque UI
+- **TypeScript** - Typage statique
+- **Vite** - Build tool
+- **Tailwind CSS** - Styles
+- **React Router** - Routage
+- **Lucide React** - Icônes
+
+## 👥 Équipe
+
+Projet réalisé lors de la **Nuit de l'Info 2025** par l'équipe **FsUY1**.
+
+## 📄 Licence
+
+MIT License

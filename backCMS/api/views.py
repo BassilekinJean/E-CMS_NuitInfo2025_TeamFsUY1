@@ -42,6 +42,13 @@ from .serializers import (
     EmailVerificationSerializer
 )
 
+from .filters import (
+    ActualiteFilter, PageCMSFilter, FAQFilter, AbonneNewsletterFilter,
+    EvenementFilter, RendezVousFilter, SignalementFilter, DemarcheFilter,
+    ProjetFilter, DeliberationFilter, DocumentBudgetaireFilter, DocumentOfficielFilter,
+    ServiceMunicipalFilter, EquipeMunicipaleFilter, ContactFilter
+)
+
 Utilisateur = get_user_model()
 
 
@@ -309,7 +316,7 @@ class ServiceMunicipalViewSet(viewsets.ModelViewSet):
     serializer_class = ServiceMunicipalSerializer
     permission_classes = [IsCommuneAdminOrReadOnly]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
-    filterset_fields = ['commune']
+    filterset_class = ServiceMunicipalFilter
     search_fields = ['nom', 'description']
 
 
@@ -319,7 +326,7 @@ class EquipeMunicipaleViewSet(viewsets.ModelViewSet):
     serializer_class = EquipeMunicipaleSerializer
     permission_classes = [IsCommuneAdminOrReadOnly]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
-    filterset_fields = ['commune', 'fonction']
+    filterset_class = EquipeMunicipaleFilter
     search_fields = ['nom']
 
 
@@ -435,7 +442,7 @@ class ActualiteViewSet(viewsets.ModelViewSet):
     queryset = Actualite.objects.select_related('commune', 'auteur').all()
     permission_classes = [IsCommuneAdminOrReadOnly]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['commune', 'categorie', 'est_publie', 'est_mis_en_avant']
+    filterset_class = ActualiteFilter
     search_fields = ['titre', 'resume', 'contenu']
     ordering_fields = ['date_publication', 'nombre_vues', 'date_creation']
     lookup_field = 'slug'
@@ -467,7 +474,7 @@ class PageCMSViewSet(viewsets.ModelViewSet):
     serializer_class = PageCMSSerializer
     permission_classes = [IsCommuneAdminOrReadOnly]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
-    filterset_fields = ['commune', 'est_publie', 'afficher_dans_menu']
+    filterset_class = PageCMSFilter
     search_fields = ['titre', 'contenu']
     lookup_field = 'slug'
 
@@ -478,7 +485,7 @@ class FAQViewSet(viewsets.ModelViewSet):
     serializer_class = FAQSerializer
     permission_classes = [IsCommuneAdminOrReadOnly]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
-    filterset_fields = ['commune', 'categorie']
+    filterset_class = FAQFilter
     search_fields = ['question', 'reponse']
 
 
@@ -488,7 +495,7 @@ class AbonneNewsletterViewSet(viewsets.ModelViewSet):
     serializer_class = AbonneNewsletterSerializer
     permission_classes = [permissions.AllowAny]
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['commune']
+    filterset_class = AbonneNewsletterFilter
     
     def get_permissions(self):
         if self.action == 'create':
@@ -503,7 +510,7 @@ class EvenementViewSet(viewsets.ModelViewSet):
     queryset = Evenement.objects.select_related('commune', 'organisateur').all()
     permission_classes = [IsCommuneAdminOrReadOnly]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['commune', 'categorie', 'statut', 'est_public']
+    filterset_class = EvenementFilter
     search_fields = ['nom', 'description', 'lieu']
     ordering_fields = ['date', 'heure_debut', 'date_creation']
     lookup_field = 'slug'
@@ -566,7 +573,7 @@ class RendezVousViewSet(viewsets.ModelViewSet):
     serializer_class = RendezVousSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
-    filterset_fields = ['commune', 'service', 'statut', 'date']
+    filterset_class = RendezVousFilter
     ordering_fields = ['date', 'heure_debut']
     
     def get_queryset(self):
@@ -654,7 +661,7 @@ class SignalementViewSet(viewsets.ModelViewSet):
     queryset = Signalement.objects.select_related('commune', 'signaleur').all()
     serializer_class = SignalementSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['commune', 'categorie', 'statut']
+    filterset_class = SignalementFilter
     search_fields = ['titre', 'description', 'adresse', 'numero_suivi']
     ordering_fields = ['date_signalement']
     
@@ -676,7 +683,7 @@ class ContactViewSet(viewsets.ModelViewSet):
     queryset = Contact.objects.select_related('commune').all()
     serializer_class = ContactSerializer
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
-    filterset_fields = ['commune', 'est_lu', 'est_traite']
+    filterset_class = ContactFilter
     ordering_fields = ['date_envoi']
     
     def get_permissions(self):
@@ -692,7 +699,7 @@ class ProjetViewSet(viewsets.ModelViewSet):
     queryset = Projet.objects.select_related('commune', 'responsable').all()
     permission_classes = [IsCommuneAdminOrReadOnly]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['commune', 'categorie', 'statut', 'est_public']
+    filterset_class = ProjetFilter
     search_fields = ['titre', 'description', 'lieu']
     ordering_fields = ['date_debut', 'budget', 'avancement', 'date_creation']
     lookup_field = 'slug'
@@ -715,7 +722,7 @@ class DeliberationViewSet(viewsets.ModelViewSet):
     serializer_class = DeliberationSerializer
     permission_classes = [IsCommuneAdminOrReadOnly]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['commune']
+    filterset_class = DeliberationFilter
     search_fields = ['numero', 'titre', 'resume']
     ordering_fields = ['date_seance', 'date_creation']
 
@@ -726,7 +733,7 @@ class DocumentBudgetaireViewSet(viewsets.ModelViewSet):
     serializer_class = DocumentBudgetaireSerializer
     permission_classes = [IsCommuneAdminOrReadOnly]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['commune', 'type_document', 'annee']
+    filterset_class = DocumentBudgetaireFilter
     search_fields = ['titre', 'description']
     ordering_fields = ['annee', 'date_creation']
 
@@ -737,7 +744,7 @@ class DocumentOfficielViewSet(viewsets.ModelViewSet):
     serializer_class = DocumentOfficielSerializer
     permission_classes = [IsCommuneAdminOrReadOnly]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['commune', 'type_document', 'categorie']
+    filterset_class = DocumentOfficielFilter
     search_fields = ['titre', 'description', 'numero_reference']
     ordering_fields = ['date_document', 'date_creation', 'nombre_telechargements']
     
