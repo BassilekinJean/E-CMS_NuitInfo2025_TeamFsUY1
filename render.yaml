@@ -1,0 +1,56 @@
+services:
+  - type: web
+    name: e-cms-backend
+    env: python
+    plan: free
+    pythonVersion: 3.13
+    
+    buildCommand: |
+      pip install -r requirements.txt
+      cd back && python manage.py migrate --settings=ecms.settings
+    
+    startCommand: |
+      cd back && gunicorn ecms.wsgi:application --bind 0.0.0.0:$PORT --workers 3
+    
+    envVars:
+      - key: SECRET_KEY
+        value: your-secret-key-change-in-production
+      - key: DEBUG
+        value: false
+      - key: ALLOWED_HOSTS
+        value: your-domain.onrender.com
+      - key: DB_NAME
+        fromService:
+          type: pgsql
+          name: e-cms-db
+          property: database
+      - key: DB_USER
+        fromService:
+          type: pgsql
+          name: e-cms-db
+          property: username
+      - key: DB_PASSWORD
+        fromService:
+          type: pgsql
+          name: e-cms-db
+          property: password
+      - key: DB_HOST
+        fromService:
+          type: pgsql
+          name: e-cms-db
+          property: hostname
+      - key: DB_PORT
+        value: "5432"
+      - key: EMAIL_BACKEND
+        value: django.core.mail.backends.smtp.EmailBackend
+      - key: EMAIL_HOST
+        value: smtp.gmail.com
+      - key: EMAIL_PORT
+        value: "587"
+      - key: EMAIL_USE_TLS
+        value: "true"
+
+  - type: pgsql
+    name: e-cms-db
+    plan: free
+    region: oregon
