@@ -1,0 +1,43 @@
+# E-CMS - CMS Multisite pour Communes Camerounaises
+# Requirements Python
+
+# Django Core
+Django>=4.2,<5.0
+
+# Django CMS
+django-cms>=3.11
+djangocms-admin-style>=3.2
+djangocms-text-ckeditor>=5.1
+djangocms-link>=3.1
+djangocms-picture>=4.1
+djangocms-file>=3.0
+djangocms-video>=3.0
+djangocms-googlemap>=2.1
+djangocms-style>=3.0
+
+# Django CMS Dependencies
+django-treebeard>=4.7
+django-sekizai>=4.1
+django-filer>=3.0
+easy-thumbnails>=2.8
+
+# Django REST Framework
+djangorestframework>=3.14
+djangorestframework-simplejwt>=5.3
+django-cors-headers>=4.3
+django-filter>=23.5
+drf-spectacular>=0.27
+
+# Base de données (optionnel - PostgreSQL recommandé pour production)
+# psycopg2-binary>=2.9
+
+# Utilitaires
+python-dotenv>=1.0
+Pillow>=10.0
+
+# Développement
+# django-debug-toolbar>=4.2
+
+# Production
+# gunicorn>=21.0
+# whitenoise>=6.6
