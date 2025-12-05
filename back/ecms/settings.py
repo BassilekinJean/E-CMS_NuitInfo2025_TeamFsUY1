@@ -90,23 +90,18 @@ WSGI_APPLICATION = 'ecms.wsgi.application'
 # Database - PostgreSQL Configuration
 # https://docs.djangoproject.com/en/4.x/ref/settings/#databases
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': os.environ.get('DB_NAME', 'ecms_db'),
-#         'USER': os.environ.get('DB_USER', 'postgres'),
-#         'PASSWORD': os.environ.get('DB_PASSWORD', ''),
-#         'HOST': os.environ.get('DB_HOST', 'localhost'),
-#         'PORT': os.environ.get('DB_PORT', '5432'),
-#     }
-# }
-
-
-# ACTIVER LA CONFIGURATION SQLite POUR LE DÉVELOPPEMENT LOCAL
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',  # Utilise un chemin relatif sûr
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.environ.get('DB_NAME', 'ecms_db'),
+        'USER': os.environ.get('DB_USER', 'ecms_user'),
+        'PASSWORD': os.environ.get('DB_PASSWORD', 'root'),
+        'HOST': os.environ.get('DB_HOST', 'localhost'),
+        'PORT': os.environ.get('DB_PORT', '5432'),
+        'CONN_MAX_AGE': 600,  # Connection pooling
+        'OPTIONS': {
+            'sslmode': 'prefer',
+        }
     }
 }
 # Password validation
