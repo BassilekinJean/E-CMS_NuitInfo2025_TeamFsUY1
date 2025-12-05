@@ -7,6 +7,15 @@ import { EmailVerification } from './components/EmailVerification';
 import { OTPVerification } from './components/OTPVerification';
 import { ToastProvider } from './components/ToastProvider';
 
+// CMS Components
+import { MayorDashboard } from '../cms_components/MayorDashboard';
+import { DashboardContent } from '../cms_components/DashboardContent';
+import MayorSchedule from '../cms_components/Evenement';
+import { Publications } from '../cms_components/Publications';
+import { Messages } from '../cms_components/Messages';
+import { Parametres } from '../cms_components/Parametres';
+import SiteWebEditor from '../cms_components/SiteWebEditor';
+
 // Wrapper component for Login with navigation
 function LoginPage() {
   const navigate = useNavigate();
@@ -79,6 +88,17 @@ const App: React.FC = () => {
           <Route path="/verify-email" element={<EmailVerificationPage />} />
           <Route path="/contact" element={<LandingPage />} />
           <Route path="/features" element={<LandingPage />} />
+          
+          {/* CMS Routes - Mayor Dashboard */}
+          <Route path="/cms/mayor-dashboard" element={<MayorDashboard />}>
+            <Route index element={<DashboardContent />} />
+            <Route path="publications" element={<Publications />} />
+            <Route path="evenements" element={<MayorSchedule />} />
+            <Route path="site-web" element={<SiteWebEditor />} />
+            <Route path="messages" element={<Messages />} />
+            <Route path="parametres" element={<Parametres />} />
+          </Route>
+
           {/* Fallback route */}
           <Route path="*" element={<LandingPage />} />
         </Routes>
