@@ -9,8 +9,7 @@ services:
       pip install -r requirements.txt
       cd back && python manage.py migrate --settings=ecms.settings
     
-    startCommand: |
-      cd back && gunicorn ecms.wsgi:application --bind 0.0.0.0:$PORT --workers 3
+    startCommand: bash start.sh
     
     envVars:
       - key: SECRET_KEY
