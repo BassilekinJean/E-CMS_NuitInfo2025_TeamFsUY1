@@ -13,7 +13,10 @@ import {
   CheckCircle,
   ArrowRight,
   Users,
+<<<<<<< HEAD
   Clock,
+=======
+>>>>>>> origin/front
   Zap
 } from 'lucide-react';
 import { useState } from 'react';
