@@ -12,7 +12,6 @@ import { MayorDashboard } from '../cms_components/MayorDashboard';
 import { DashboardContent } from '../cms_components/DashboardContent';
 import MayorSchedule from '../cms_components/Evenement';
 import { Publications } from '../cms_components/Publications';
-import { Messages } from '../cms_components/Messages';
 import { Parametres } from '../cms_components/Parametres';
 import SiteWebEditor from '../cms_components/SiteWebEditor';
 
@@ -95,7 +94,6 @@ const App: React.FC = () => {
             <Route path="publications" element={<Publications />} />
             <Route path="evenements" element={<MayorSchedule />} />
             <Route path="site-web" element={<SiteWebEditor />} />
-            <Route path="messages" element={<Messages />} />
             <Route path="parametres" element={<Parametres />} />
           </Route>
 
